@@ -1,0 +1,14 @@
+# HTTP configuration.
+[http]
+port = 7000
+addr = 0.0.0.0
+ssl = no
+ssl-key = etc/ssl/server.key
+ssl-cert = etc/ssl/server.crt
+
+# Pcap spool configuration.  
+# The example would be good for running daemonlogger like:
+#    daemonlogger -i eth0 -l /data/capture
+[spool]
+directory = /data/capture
+prefix = daemonlogger.pcap

@@ -1,0 +1,3 @@
+include dumpy/templates/*
+include dumpy/static/*
+include etc/pip.list etc/*.dist

@@ -1,0 +1,9 @@
+*~
+*.pyc
+virtualenv
+etc/users
+etc/config
+etc/ssl
+etc/cookie-secret
+.project
+.pydevproject

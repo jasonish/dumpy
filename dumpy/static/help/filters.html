@@ -1,0 +1,29 @@
+<p>
+  The filter can be a valid libpcap filter or "fast" style event
+  from Snort or Suricata. For examples:
+</p>
+<ul>
+  <li>
+    11/15-16:38:34.709301 [**] [1:498:8] INDICATOR-COMPROMISE
+    id check returned root [**] [Classification: Potentially
+    Bad Traffic] [Priority: 2] {TCP} 217.160.51.31:80 ->
+    172.16.1.11:33188
+  </li>
+  <li>
+    11/15/2012-16:38:38.574576 [**] [1:2100498:7] GPL
+    ATTACK_RESPONSE id check returned root [**]
+    [Classification: Potentially Bad Traffic] [Priority: 2]
+    {TCP} 217.160.51.31:80 -> 172.16.1.11:33189
+  </li>
+</ul>
+<p>
+  The filter may also be a partial event, for example:
+</p>
+<ul>
+  <li>{TCP} 172.16.1.240:57522 -> 199.7.59.72:80</li>
+</ul>
+</blockquote>
+<p>
+  Due to lack of time zone information in "fast" style events,
+  the timestamp will be treated as server side local time.
+</p>

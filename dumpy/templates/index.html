@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dumpy</title>
+    <!-- Bootstrap -->
+    <link href="/static/bootstrap/css/bootstrap.css" rel="stylesheet">
+
+    <link href="/static/dumpy.css" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+	<div class="container">
+	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+	  </a>
+	  <a class="brand" href="#" tabindex="-1">Dumpy</a>
+	  <div class="nav-collapse">
+            <ul class="nav pull-right">
+	      <li class="dropdown">
+		<a href="#" role="button" class="dropdown-toggle" 
+		   data-toggle="dropdown">
+		  Help
+		  <b class="caret"></b>
+		</a>
+		<ul class="dropdown-menu" rule="menu">
+		  <li><a href="#modal-help-filters" 
+			 data-toggle="modal">Filters and Events</a></li>
+		  <li><a href="#modal-help-start-time" data-toggle="modal">
+		      Start Time</a></li>
+		  <li><a href="#modal-help-end-time" data-toggle="modal">
+		      End Time</a></li>
+		  <!-- TODO
+		  <li class="divider"></li>
+		  <li><a href="#">API</a></li>
+		  -->
+		</ul>
+	      </li>
+            </ul>
+	  </div><!-- /.nav-collapse -->
+	</div><!-- /.container -->
+      </div><!-- /.navbar-inner -->
+    </div><!-- /.navbar -->
+
+    <div class="container">
+
+      {% if warning is not None %}
+      <div class="row">
+	<div class="offset1 span8">
+	  <div class="alert">
+	    <button type="button" class="close" data-dismiss="alert">x</button>
+	    {{warning}}
+	  </div>
+	</div>
+      </div>
+      {% end %}
+
+      {% if error is not None %}
+      <div class="row">
+	<div class="offset1 span8">
+	  <div class="alert alert-error">
+	    <button type="button" class="close" data-dismiss="alert">x</button>
+	    {{error}}
+	  </div>
+	</div>
+      </div>
+      {% end %}
+
+      <form id="query-form" method="post" action="fetch">
+	<div class="row">
+	  <div class="offset1 span8">
+	    <textarea id="textarea-query" 
+		      placeholder="Filter or Event..."
+		      name="query"
+		      tabindex="1"
+		      name="query" 
+		      class="span8" 
+		      rows="1">{{query if query else ""}}</textarea>
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="offset1 span4">
+	    <input id="start-time-input" name="start-time"
+		   placeholder="Start Time..."
+		   tabindex="2" value="{{start_time if start_time else ""}}"
+		   class="span4 time-input" type="text">
+	  </div>
+	  <div class="span4">
+	    <input id="end-time-input" name="end-time" 
+		   placeholder="End Time..."
+		   tabindex="3" value="{{end_time if end_time else ""}}"
+		   class="span4 time-input" type="text">
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="offset4 span2" style="text-align: center;">
+	    <button type="submit" class="btn" tabindex="4">Download</button>
+	  </div>
+	</div>
+	<input type="hidden" id="tzoffset" name="tzoffset" value="" />
+      </form>
+    </div>
+    
+    <div id="modal-help-filters" 
+	 class="modal hide fade modal-help" tabindex="-1" role="dialog">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal">x</button>
+	<h3>Filters and Events</h3>
+      </div>
+      <div class="modal-body" data-content="/static/help/filters.html"></div>
+      <div class="modal-footer">
+	<button class="btn" data-dismiss="modal">Close</button>
+      </div>  
+    </div>
+    
+    <div id="modal-help-start-time" 
+	 class="modal hide fade modal-help" tabindex="-1" role="dialog">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal">x</button>
+	<h3>Start Time</h3>
+      </div>
+      <div class="modal-body" data-content="/static/help/start-time.html"></div>
+      <div class="modal-footer">
+	<button class="btn" data-dismiss="modal">Close</button>
+      </div>  
+    </div>
+
+    <div id="modal-help-end-time" 
+	 class="modal hide fade modal-help" tabindex="-1" role="dialog">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal">x</button>
+	<h3>End Time</h3>
+      </div>
+      <div class="modal-body" data-content="/static/help/end-time.html"></div>
+      <div class="modal-footer">
+	<button class="btn" data-dismiss="modal">Close</button>
+      </div>  
+    </div>
+
+    <script src="/static/js/jquery-latest.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.js"></script>
+    <script src="/static/dumpy.js"></script>
+  </body>
+</html>

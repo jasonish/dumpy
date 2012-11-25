@@ -1,0 +1,59 @@
+<p>
+  The end time for packets to return.  Only events occuring at
+  or before this time will be returned.
+</p>
+<p>
+  Absolute timestamp (ISO 8601 format) or relative time
+  strings can be used.
+</p>
+<h4>Absolute Timestamps</h4>
+<p>
+  Absolute timestamps are based around ISO 8601 formatting.
+  If no timezone offset is provided the offset of the browser
+  will be used (currently GMT{offset}).  Only the resolution
+  required needs to be specified with the lower resolution
+  being a microsecond.
+</p>
+<table class="table table-bordered">
+  <tr>
+    <th>Input</th>
+    <th>Result</th>
+  </tr>
+  <tr>
+    <td>2012</td>
+    <td>2012-01-01T00:00:00{offset}</td>
+  </tr>
+  <tr>
+    <td>2012-02</td>
+    <td>2012-02-01T00:00:00{offset}</td>
+  </tr>
+  <tr>
+    <td>2012-02-03T11</td>
+    <td>2012-02-03T11:00:00{offset}</td>
+  </tr>
+  <tr>
+    <td>2012-02-03T11:59:01.123456+1200</td>
+    <td>2012-02-03T11:59:01.123456+1200</td>
+  </tr>
+  <tr>
+    <td>2012-02-03 11:59:00Z</td>
+    <td>2012-02-03T11:59:00Z</td>
+  </tr>
+</table>
+<h4>Relative Timestamps</h4>
+<p>
+  A relative timestamp references a time after a reference
+  time.  If the provided filter is an event containing a
+  timestamp the reference time will be the time from the
+  event.  Otherwise the reference time will be
+  the <strong>start</strong> time.
+</p>
+<p>
+  Examples:
+</p>
+<ul>
+  <li>2 seconds</li>
+  <li>3 minutes</li>
+  <li>4 hours</li>
+  <li>5 days</li>
+</ul>
