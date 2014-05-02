@@ -1,0 +1,13 @@
+# Build artifacts.
+dumpy
+dumpy.test
+*~
+/dist/
+
+# Running artifacts.
+*.pem
+dumpy.yaml*
+
+# IntelliJ files.
+*.iml
+/.idea

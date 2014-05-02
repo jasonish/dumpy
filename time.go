@@ -26,52 +26,23 @@
 
 package main
 
-import (
-	"flag"
-	"fmt"
-	"os"
-)
+import "time"
 
-func Usage() {
-	fmt.Printf(`
-Usage: dumpy [options] <command>
+// Time related functions.
 
-Options:
-    -config <file>       Path to the configuration file
+func ParseTime(value string, defaultTimezoneOffset string) *time.Time {
 
-Commands:
-    start                Start the server
-    version              Display version and exit
-    config               Configuration tool
-    dump                 Command to process pcap files
-    generate-cert        Generate a self signed TLS certificate
-
-`)
-}
-
-func main() {
-
-	var configFilename string
-
-	flag.Usage = Usage
-	flag.StringVar(&configFilename, "config", "dumpy.yaml", "config file")
-	flag.Parse()
-
-	if len(flag.Args()) < 1 {
-		Usage()
-	} else {
-		switch flag.Args()[0] {
-		case "version":
-			fmt.Println(VERSION)
-		case "dump":
-			DumperMain(os.Args[2:])
-		case "config":
-			ConfigMain(NewConfig(configFilename), os.Args[2:])
-		case "start":
-			StartServer(NewConfig(configFilename))
-		case "generate-cert":
-			GenerateCertMain(os.Args[2:])
-		}
+	// First try as RFC3339Nano.
+	result, err := time.Parse(time.RFC3339Nano, value)
+	if err == nil {
+		return &result
 	}
 
+	// Try adding the default timezone offset.
+	result, err = time.Parse(time.RFC3339Nano, value+defaultTimezoneOffset)
+	if err == nil {
+		return &result
+	}
+
+	return nil
 }

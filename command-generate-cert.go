@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build ignore
-
 // Generate a self-signed X.509 certificate for a TLS server. Outputs to
 // 'cert.pem' and 'key.pem' and will overwrite existing files.
+
+// Adapted to be used as a sub-command.
 
 package main
 
@@ -26,15 +26,17 @@ import (
 )
 
 var (
-	host      = flag.String("host", "", "Comma-separated hostnames and IPs to generate a certificate for")
-	validFrom = flag.String("start-date", "", "Creation date formatted as Jan 1 15:04:05 2011")
-	validFor  = flag.Duration("duration", 365*24*time.Hour, "Duration that certificate is valid for")
-	isCA      = flag.Bool("ca", false, "whether this cert should be its own Certificate Authority")
-	rsaBits   = flag.Int("rsa-bits", 2048, "Size of RSA key to generate")
+	flagset = flag.NewFlagSet("generate-cert", flag.ExitOnError)
+
+	host      = flagset.String("host", "", "Comma-separated hostnames and IPs to generate a certificate for")
+	validFrom = flagset.String("start-date", "", "Creation date formatted as Jan 1 15:04:05 2011")
+	validFor  = flagset.Duration("duration", 365*24*time.Hour, "Duration that certificate is valid for")
+	isCA      = flagset.Bool("ca", false, "whether this cert should be its own Certificate Authority")
+	rsaBits   = flagset.Int("rsa-bits", 2048, "Size of RSA key to generate")
 )
 
-func main() {
-	flag.Parse()
+func GenerateCertMain(args []string) {
+	flagset.Parse(args)
 
 	if len(*host) == 0 {
 		log.Fatalf("Missing required --host parameter")

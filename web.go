@@ -27,51 +27,64 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"os"
+	"html/template"
+	"log"
+	"net/http"
+
+	"github.com/GeertJohan/go.rice"
+	"github.com/gorilla/mux"
 )
 
-func Usage() {
-	fmt.Printf(`
-Usage: dumpy [options] <command>
-
-Options:
-    -config <file>       Path to the configuration file
-
-Commands:
-    start                Start the server
-    version              Display version and exit
-    config               Configuration tool
-    dump                 Command to process pcap files
-    generate-cert        Generate a self signed TLS certificate
-
-`)
+type IndexHandler struct {
+	config *Config
 }
 
-func main() {
-
-	var configFilename string
-
-	flag.Usage = Usage
-	flag.StringVar(&configFilename, "config", "dumpy.yaml", "config file")
-	flag.Parse()
-
-	if len(flag.Args()) < 1 {
-		Usage()
-	} else {
-		switch flag.Args()[0] {
-		case "version":
-			fmt.Println(VERSION)
-		case "dump":
-			DumperMain(os.Args[2:])
-		case "config":
-			ConfigMain(NewConfig(configFilename), os.Args[2:])
-		case "start":
-			StartServer(NewConfig(configFilename))
-		case "generate-cert":
-			GenerateCertMain(os.Args[2:])
-		}
+func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	box, err := rice.FindBox("www")
+	if err != nil {
+		log.Fatal(err)
+	}
+	indexString, err := box.String("index.html")
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	model := map[string]interface{}{
+		"spools": h.config.Spools,
+	}
+
+	templatePage, err := template.New("index").Parse(indexString)
+	templatePage.Execute(w, model)
+}
+
+func StartServer(config *Config) {
+
+	authenticator := Authenticator{config.Users}
+
+	router := mux.NewRouter()
+
+	router.Handle("/fetch", authenticator.WrapHandler(&FetchHandler{config}))
+	router.Handle("/", authenticator.WrapHandler(&IndexHandler{config}))
+
+	router.PathPrefix("/").Handler(
+		http.FileServer(rice.MustFindBox("www").HTTPBox()))
+
+	http.Handle("/", router)
+
+	addr := fmt.Sprintf(":%d", config.Port)
+	if !config.Tls.Enabled {
+		log.Printf("Starting server on %s", addr)
+		err := http.ListenAndServe(addr, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Printf("Starting server on %s with TLS", addr)
+		err := http.ListenAndServeTLS(addr, config.Tls.Certificate,
+			config.Tls.Key, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
