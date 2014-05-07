@@ -27,55 +27,41 @@
 package main
 
 import (
-	"dumpy/dumper"
-	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
+	"strings"
+
+	"github.com/gorilla/context"
 )
 
-// Global logger.
-var logger = NewLogger("")
-
-func Usage() {
-	fmt.Printf(`
-Usage: dumpy [options] <command>
-
-Options:
-    -config <file>       Path to the configuration file
-
-Commands:
-    start                Start the server
-    version              Display version and exit
-    config               Configuration tool
-    dump                 Command to process pcap files
-    generate-cert        Generate a self signed TLS certificate
-
-`)
+// Logger is a wrapper around the standard logger that implements some
+// http.Request aware functions.
+type Logger struct {
+	*log.Logger
 }
 
-func main() {
+func NewLogger(prefix string) *Logger {
+	return &Logger{log.New(os.Stderr, prefix, log.Ldate|log.Ltime)}
+}
 
-	var configFilename string
+func (l *Logger) PrintfWithRequest(r *http.Request, format string, v ...interface{}) {
+	l.Printf("[%s@%s] %s",
+		context.Get(r, "username"),
+		l.getRemoteAddr(r),
+		fmt.Sprintf(format, v...))
+}
 
-	flag.Usage = Usage
-	flag.StringVar(&configFilename, "config", "dumpy.yaml", "config file")
-	flag.Parse()
+func (l *Logger) PrintWithRequest(r *http.Request, v ...interface{}) {
+	l.Printf("[%s@%s] %s",
+		context.Get(r, "username"),
+		l.getRemoteAddr(r),
+		fmt.Sprint(v...))
+}
 
-	if len(flag.Args()) < 1 {
-		Usage()
-	} else {
-		switch flag.Args()[0] {
-		case "version":
-			fmt.Println(VERSION)
-		case "dump":
-			dumper.DumperMain(os.Args[2:])
-		case "config":
-			ConfigMain(NewConfig(configFilename), os.Args[2:])
-		case "start":
-			StartServer(NewConfig(configFilename))
-		case "generate-cert":
-			GenerateCertMain(os.Args[2:])
-		}
-	}
-
+// getRemoteAddr gets the remote address of the request without the
+// port information.
+func (l *Logger) getRemoteAddr(r *http.Request) string {
+	return strings.Split(r.RemoteAddr, ":")[0]
 }

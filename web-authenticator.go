@@ -31,6 +31,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"github.com/gorilla/context"
 
 	"code.google.com/p/go.crypto/bcrypt"
 )
@@ -52,6 +53,13 @@ func (hw *HandlerWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type Authenticator struct {
 	users map[string]string
+}
+
+func NewAuthenticator(config *Config) *Authenticator {
+	if len(config.Users) == 0 {
+		logger.Printf("WARNING: No users configuration. Authentication disabled.")
+	}
+	return &Authenticator{config.Users}
 }
 
 func (a *Authenticator) GetUsernameAndPassword(authHeader string) (string, string) {
@@ -85,11 +93,16 @@ func (a *Authenticator) CheckUsernameAndPassword(username string, password strin
 }
 
 func (a *Authenticator) authenticate(request *http.Request) bool {
+	if len(a.users) == 0 {
+		context.Set(request, "username", "<anonymous>")
+		return true
+	}
 	authHeader := request.Header.Get("authorization")
 	if authHeader != "" {
 		username, password := a.GetUsernameAndPassword(authHeader)
 		if username != "" {
 			if a.CheckUsernameAndPassword(username, password) {
+				context.Set(request, "username", username)
 				return true
 			}
 		}

@@ -16,4 +16,9 @@ $(document).ready(function () {
     $("#input-timezone-offset").val(moment().format("Z"));
     $("input[name='start-time']").val(moment().format());
 
+    $("#query-tabs a").click(function (e) {
+        e.preventDefault();
+        $(this).tab("show");
+        $("#query-type").val($(this).attr("query-type"));
+    });
 });

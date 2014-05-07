@@ -29,7 +29,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -66,20 +66,26 @@ type FetchHandler struct {
 }
 
 func (h *FetchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("event") != "" {
-		h.HandleEventRequest(w, r)
-	} else if r.FormValue("filter") != "" {
+
+	queryType := r.FormValue("query-type")
+
+	switch queryType {
+	case "pcap-filter":
 		h.HandleFilterRequest(w, r)
-	} else {
-		http.Error(w, "Missing fetch request type (filter or event)",
-			http.StatusBadRequest)
+	case "event":
+		h.HandleEventRequest(w, r)
+	case "":
+		HttpErrorAndLog(w, r, http.StatusBadRequest,
+			"Missing query-type parameter.")
+	default:
+		HttpErrorAndLog(w, r, http.StatusBadRequest,
+			"Unknown query-type: %s", queryType)
 	}
 }
 
 func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Request) {
 
 	filter := r.FormValue("filter")
-
 	argStartTime := r.FormValue("start-time")
 	argDuration := r.FormValue("duration")
 	argSpool := r.FormValue("spool")
@@ -115,6 +121,13 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	logger.PrintfWithRequest(r, "Preparing dumper request: %s",
+		map[string]string{
+			"start-time":  startTime.String(),
+			"duration":    duration.String(),
+			"pcap-filter": filter,
+		})
+
 	dumperArgs := []string{
 		"-directory", spool.Directory,
 		"-prefix", spool.Prefix,
@@ -127,9 +140,9 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 
 func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request) {
 
-	event, _ := DecodeEvent(r.FormValue("event"))
-	if event == nil {
-		http.Error(w, "failed to decode event", http.StatusBadRequest)
+	event, err := DecodeEvent(r.FormValue("event"))
+	if err != nil {
+		HttpErrorAndLog(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -168,6 +181,14 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	logger.PrintfWithRequest(r, "Preparing dumper request: %s",
+		map[string]string{
+			"start-time":  startTime.String(),
+			"duration":    duration.String(),
+			"pcap-filter": event.ToPcapFilter(),
+			"event":       event.Original,
+		})
+
 	dumperArgs := []string{
 		"-directory", spool.Directory,
 		"-prefix", spool.Prefix,
@@ -204,23 +225,27 @@ func (h *FetchHandler) RunDumper(w http.ResponseWriter, r *http.Request, args []
 			if err != nil {
 				break
 			}
-			log.Printf("dumpy dumper (stderr): %s", line)
+			logger.Printf("dumpy dumper [%d] (stderr) %s", dumper.Process.Pid, line)
 		}
 	}()
 
 	err = dumper.Start()
 	if err != nil {
-		http.Error(w, "failed to execute dumper: "+err.Error(),
-			http.StatusInternalServerError)
+		HttpErrorAndLog(w, r, http.StatusInternalServerError,
+			"failed to execute dumper: %s", err)
 		return
 	}
+	logger.PrintfWithRequest(r, "dumper with pid %d started: %s",
+		dumper.Process.Pid, dumper.Args)
 
 	bytesWritten := 0
 	for {
 		buf := make([]byte, 8192)
 		n, err := stdout.Read(buf)
 		if err != nil {
-			log.Print(err)
+			if err != io.EOF {
+				logger.PrintfWithRequest(r, "unexpected dump error: %s", err)
+			}
 			break
 		}
 
@@ -231,7 +256,8 @@ func (h *FetchHandler) RunDumper(w http.ResponseWriter, r *http.Request, args []
 		}
 		n, err = w.Write(buf[0:n])
 		if err != nil {
-			log.Printf("write to client failed: %s", err)
+			logger.PrintfWithRequest(r,
+				"Write failed; client may have disconnected: %s", err)
 			break
 		}
 		bytesWritten += n
@@ -239,5 +265,8 @@ func (h *FetchHandler) RunDumper(w http.ResponseWriter, r *http.Request, args []
 
 	if bytesWritten == 0 {
 		http.Error(w, "No packets found.", http.StatusNotFound)
+	} else {
+		logger.PrintfWithRequest(r, "Wrote %d bytes of packet data",
+			bytesWritten)
 	}
 }

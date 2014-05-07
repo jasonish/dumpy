@@ -36,11 +36,20 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func HttpErrorAndLog(w http.ResponseWriter, r *http.Request, code int,
+	format string, v ...interface{}) {
+
+	error := fmt.Sprintf(format, v...)
+	logger.PrintWithRequest(r, error)
+	http.Error(w, error, code)
+}
+
 type IndexHandler struct {
 	config *Config
 }
 
 func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
 	box, err := rice.FindBox("www")
 	if err != nil {
 		log.Fatal(err)
@@ -60,7 +69,7 @@ func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func StartServer(config *Config) {
 
-	authenticator := Authenticator{config.Users}
+	authenticator := NewAuthenticator(config)
 
 	router := mux.NewRouter()
 

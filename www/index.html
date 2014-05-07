@@ -33,202 +33,208 @@
 
 <input id="input-timezone-offset" type="hidden" name="default-timezone-offset"
        value=""/>
+<input id="query-type" type="hidden" name="query-type" value="pcap-filter"/>
 
 <div class="row">
-<div class="col-md-1"></div>
-<div class="col-md-10">
+    <div class="col-md-1"></div>
+    <div class="col-md-10">
 
-    <ul class="nav nav-tabs">
-        <li class="active"><a href="#pcap-filter-tab"
-                              data-toggle="tab">PCAP
-            Filter</a>
-        </li>
-        <li><a href="#event-tab" data-toggle="tab">Event</a>
-        </li>
-    </ul>
-    <div id="query-panel" class="panel panel-default">
-        <div class="panel-body">
-            <div class="tab-content">
-                <div class="tab-pane active" id="pcap-filter-tab">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <textarea id="pcap-filter-input"
-                                      class="form-control"
-                                      name="filter" tabindex="1"
-                                      placeholder="PCAP filter..."></textarea>
-                        </div>
-                    </div>
-                    <!-- end row-->
-                    <br/>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="start-time">Start time:</label>
-
-                            <div class="input-group">
-                                <input id="start-time" type="text"
-                                       name="start-time"
-                                       class="form-control"
-                                       tabindex="2"/>
-
-                                <div class="input-group-btn">
-                                    <button type="button"
-                                            class="btn btn-default dropdown-toggle"
-                                            data-toggle="dropdown"><span
-                                            class="caret"></span></button>
-                                    <ul class="dropdown-menu pull-right"
-                                        role="menu">
-                                        <li>
-                                            <a onclick="setStartTime(null, null)">Now</a>
-                                        </li>
-                                        <li>
-                                            <a onclick="setStartTime('minute', 1)">1
-                                                minute
-                                                ago</a>
-                                        </li>
-                                        <li>
-                                            <a onclick="setStartTime('minute', 5)">5
-                                                minutes
-                                                ago</a>
-                                        </li>
-                                        <li>
-                                            <a onclick="setStartTime('minute', 15)">15
-                                                minutes ago</a></li>
-                                        <li>
-                                            <a onclick="setStartTime('hour', 1)">1
-                                                hour
-                                                ago</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <br/>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="duration">Duration:</label>
-
-                            <div class="input-group">
-                                <input id="duration" type="text"
-                                       name="duration"
-                                       class="form-control"
-                                       tabindex="3" value="1m"/>
-
-                                <div class="input-group-btn">
-                                    <button type="button"
-                                            class="btn btn-default dropdown-toggle"
-                                            data-toggle="dropdown"><span
-                                            class="caret"></span></button>
-                                    <ul class="dropdown-menu pull-right"
-                                        role="menu">
-                                        <li><a onclick="setElementValue($('#duration'), '15s')">15
-                                            seconds</a>
-                                        </li>
-                                        <li><a onclick="setElementValue($('#duration'), '30s')">30
-                                            seconds</a>
-                                        </li>
-                                        <li><a onclick="setElementValue($('#duration'), '1m')">1
-                                            minute</a></li>
-                                        <li><a onclick="setElementValue($('#duration'), '5m')">5
-                                            minutes</a>
-                                        </li>
-                                        <li><a onclick="setElementValue($('#duration'), '15m')">15
-                                            minutes</a>
-                                        </li>
-                                        <li><a onclick="setElementValue($('#duration'), '1h')">1
-                                            hour</a></li>
-                                    </ul>
-                                </div>
+        <ul class="nav nav-tabs" id="query-tabs">
+            <li class="active"><a href="#pcap-filter-tab"
+                                  query-type="pcap-filter">PCAP Filter</a>
+            </li>
+            <li><a href="#event-tab" query-type="event">Event</a>
+            </li>
+        </ul>
+        <div id="query-panel" class="panel panel-default">
+            <div class="panel-body">
+                <div class="tab-content">
+                    <div class="tab-pane active" id="pcap-filter-tab">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <textarea id="pcap-filter-input"
+                                          class="form-control"
+                                          name="filter" tabindex="1"
+                                          placeholder="PCAP filter..."></textarea>
                             </div>
                         </div>
-                    </div>
-                    <!-- end row-->
-                </div>
-                <div class="tab-pane" id="event-tab">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <textarea id="event-input" class="form-control"
-                                      name="event" tabindex="1"
-                                      placeholder="Event..."></textarea>
-                        </div>
-                    </div>
-                    <br/>
+                        <!-- end row-->
+                        <br/>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="duration-before">Duration before
-                                event:</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="start-time">Start time:</label>
 
-                            <div class="input-group">
-                                <input id="duration-before" type="text"
-                                       name="duration-before"
-                                       class="form-control" value="1m"
-                                       tabindex="2"/>
+                                <div class="input-group">
+                                    <input id="start-time" type="text"
+                                           name="start-time"
+                                           class="form-control"
+                                           tabindex="2"/>
 
-                                <div class="input-group-btn">
-                                    <button type="button"
-                                            class="btn btn-default dropdown-toggle"
-                                            data-toggle="dropdown"><span
-                                            class="caret"></span></button>
-                                    <ul class="dropdown-menu pull-right"
-                                        role="menu">
-                                        <li>
-                                            <a onclick="setElementValue($('#duration-before'), '1s')">1
-                                                second</a>
-                                        </li>
-                                        <li>
-                                            <a onclick="setElementValue($('#duration-before'), '1m')">1
-                                                minute</a>
-                                        </li>
-                                        <li>
-                                            <a onclick="setElementValue($('#duration-before'), '1h')">1
-                                                hour</a>
-                                        </li>
-                                    </ul>
+                                    <div class="input-group-btn">
+                                        <button type="button"
+                                                class="btn btn-default dropdown-toggle"
+                                                data-toggle="dropdown"><span
+                                                class="caret"></span></button>
+                                        <ul class="dropdown-menu pull-right"
+                                            role="menu">
+                                            <li>
+                                                <a onclick="setStartTime(null, null)">Now</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setStartTime('minute', 1)">1
+                                                    minute
+                                                    ago</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setStartTime('minute', 5)">5
+                                                    minutes
+                                                    ago</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setStartTime('minute', 15)">15
+                                                    minutes ago</a></li>
+                                            <li>
+                                                <a onclick="setStartTime('hour', 1)">1
+                                                    hour
+                                                    ago</a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
+                                <br/>
                             </div>
-                            <br/>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="duration-after">Duration after
-                                event:</label>
+                            <div class="col-md-6">
+                                <label for="duration">Duration:</label>
 
-                            <div class="input-group">
-                                <input id="duration-after" type="text"
-                                       name="duration-after"
-                                       class="form-control"
-                                       tabindex="3" value="1m"/>
+                                <div class="input-group">
+                                    <input id="duration" type="text"
+                                           name="duration"
+                                           class="form-control"
+                                           tabindex="3" value="1m"/>
 
-                                <div class="input-group-btn">
-                                    <button type="button"
-                                            class="btn btn-default dropdown-toggle"
-                                            data-toggle="dropdown"><span
-                                            class="caret"></span></button>
-                                    <ul class="dropdown-menu pull-right"
-                                        role="menu">
-                                        <li>
-                                            <a onclick="setElementValue($('#duration-after'), '1s')">1
-                                                second</a>
-                                        </li>
-                                        <li>
-                                            <a onclick="setElementValue($('#duration-after'), '1m')">1
-                                                minute</a>
-                                        </li>
-                                        <li>
-                                            <a onclick="setElementValue($('#duration-after'), '1h')">1
-                                                hour</a>
-                                        </li>
-                                    </ul>
+                                    <div class="input-group-btn">
+                                        <button type="button"
+                                                class="btn btn-default dropdown-toggle"
+                                                data-toggle="dropdown"><span
+                                                class="caret"></span></button>
+                                        <ul class="dropdown-menu pull-right"
+                                            role="menu">
+                                            <li>
+                                                <a onclick="setElementValue($('#duration'), '15s')">15
+                                                    seconds</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration'), '30s')">30
+                                                    seconds</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration'), '1m')">1
+                                                    minute</a></li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration'), '5m')">5
+                                                    minutes</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration'), '15m')">15
+                                                    minutes</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration'), '1h')">1
+                                                    hour</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- end row-->
                     </div>
-                    <!-- end row-->
+                    <div class="tab-pane" id="event-tab">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <textarea id="event-input" class="form-control"
+                                          name="event" tabindex="1"
+                                          placeholder="Event..."></textarea>
+                            </div>
+                        </div>
+                        <br/>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="duration-before">Duration before
+                                    event:</label>
+
+                                <div class="input-group">
+                                    <input id="duration-before" type="text"
+                                           name="duration-before"
+                                           class="form-control" value="1m"
+                                           tabindex="2"/>
+
+                                    <div class="input-group-btn">
+                                        <button type="button"
+                                                class="btn btn-default dropdown-toggle"
+                                                data-toggle="dropdown"><span
+                                                class="caret"></span></button>
+                                        <ul class="dropdown-menu pull-right"
+                                            role="menu">
+                                            <li>
+                                                <a onclick="setElementValue($('#duration-before'), '1s')">1
+                                                    second</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration-before'), '1m')">1
+                                                    minute</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration-before'), '1h')">1
+                                                    hour</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="duration-after">Duration after
+                                    event:</label>
+
+                                <div class="input-group">
+                                    <input id="duration-after" type="text"
+                                           name="duration-after"
+                                           class="form-control"
+                                           tabindex="3" value="1m"/>
+
+                                    <div class="input-group-btn">
+                                        <button type="button"
+                                                class="btn btn-default dropdown-toggle"
+                                                data-toggle="dropdown"><span
+                                                class="caret"></span></button>
+                                        <ul class="dropdown-menu pull-right"
+                                            role="menu">
+                                            <li>
+                                                <a onclick="setElementValue($('#duration-after'), '1s')">1
+                                                    second</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration-after'), '1m')">1
+                                                    minute</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="setElementValue($('#duration-after'), '1h')">1
+                                                    hour</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end row-->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="col-md-1"></div>
+    <div class="col-md-1"></div>
 </div>
 
 <br/>

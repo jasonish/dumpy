@@ -58,9 +58,13 @@ type Event struct {
 	SourcePort uint16
 	DestAddr   string
 	DestPort   uint16
+
+	// The original event.
+	Original string
 }
 
 func (e *Event) ToPcapFilter() string {
+
 	return fmt.Sprintf(
 		"proto %s and ((host %s and port %d) and (host %s and port %d))",
 		e.Protocol,
@@ -69,6 +73,7 @@ func (e *Event) ToPcapFilter() string {
 }
 
 func DecodeSnortFastEventTimestamp(buf string) string {
+
 	matches := snortFastTimestampPattern.FindStringSubmatch(buf)
 	if matches == nil {
 		return ""
@@ -85,6 +90,7 @@ func DecodeSnortFastEventTimestamp(buf string) string {
 // DecodeSnortFastEvent will decode Snort and Suricata "fast" style
 // events.
 func DecodeSnortFastEvent(buf string) *Event {
+
 	eventMatches := snortFastEventRegexp.FindStringSubmatch(buf)
 	if eventMatches == nil {
 		if parsers_debug {
@@ -120,11 +126,13 @@ func DecodeSnortFastEvent(buf string) *Event {
 		SourcePort: (uint16)(sourcePort),
 		DestAddr:   eventMatches[4],
 		DestPort:   (uint16)(destPort),
+		Original:   buf,
 	}
 }
 
 // DecodeSuricataJsonEvent decodes a Suricata style JSON event.
 func DecodeSuricataJsonEvent(buf string) *Event {
+
 	suricataJsonEvent := SuricataJsonEvent{}
 
 	if err := json.Unmarshal(([]byte)(buf), &suricataJsonEvent); err != nil {
@@ -134,8 +142,6 @@ func DecodeSuricataJsonEvent(buf string) *Event {
 		return nil
 	}
 
-	log.Println(suricataJsonEvent)
-
 	return &Event{
 		Timestamp:  suricataJsonEvent.Timestamp,
 		Protocol:   suricataJsonEvent.Protocol,
@@ -143,6 +149,7 @@ func DecodeSuricataJsonEvent(buf string) *Event {
 		SourcePort: suricataJsonEvent.SourcePort,
 		DestAddr:   suricataJsonEvent.DestAddr,
 		DestPort:   suricataJsonEvent.DestPort,
+		Original:   buf,
 	}
 }
 
@@ -153,5 +160,5 @@ func DecodeEvent(buf string) (*Event, error) {
 	if event := DecodeSnortFastEvent(buf); event != nil {
 		return event, nil
 	}
-	return nil, fmt.Errorf("unable to decode event")
+	return nil, fmt.Errorf("error: event not recognized by any decoders")
 }

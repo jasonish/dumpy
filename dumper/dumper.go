@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package main
+package dumper
 
 import (
 	"flag"
@@ -36,6 +36,8 @@ import (
 
 	"dumpy/libpcap"
 )
+
+var verbose bool = false
 
 func getStartSeconds(filename string) (int64, error) {
 	var seconds int64
@@ -117,6 +119,7 @@ func DumperMain(args []string) {
 		"start time in unix time (seconds)")
 	flagset.Int64Var(&duration, "duration", 0, "duration of capture (seconds)")
 	flagset.StringVar(&filter, "filter", "", "bpf filter expression")
+	flagset.BoolVar(&verbose, "verbose", false, "be more verbose")
 	flagset.Parse(args)
 
 	if directory == "" || prefix == "" {
@@ -135,7 +138,9 @@ func DumperMain(args []string) {
 	var dumper *libpcap.Dumper
 
 	for _, file := range files {
-		log.Printf("opening file %s", file.Name())
+		if verbose {
+			log.Printf("opening file %s", file.Name())
+		}
 		pcap, err := libpcap.OpenOffline(path.Join(directory, file.Name()))
 		if err != nil {
 			log.Fatal(err)
