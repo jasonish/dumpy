@@ -19,7 +19,7 @@ func AssertEquals(t *testing.T, value interface{}, expected interface{}) {
 func TestParseTime(t *testing.T) {
 
 	// Basic RFC3339 value at UTC.
-	value := ParseTime("2014-04-30T21:54:09Z")
+	value := ParseTime("2014-04-30T21:54:09Z", "")
 	if value == nil {
 		t.Fatalf("unexpected nil")
 	}
@@ -28,23 +28,13 @@ func TestParseTime(t *testing.T) {
 	}
 
 	// With timezone offsets.
-	value = ParseTime("2014-04-30T15:56:42-06:00")
+	value = ParseTime("2014-04-30T15:56:42-06:00", "")
 	if value == nil {
 		t.Fatalf("unexpected nil")
 	}
 	if value.Unix() != 1398895002 {
 		t.Fatalf("expected 1398895002, got %d", value.Unix())
 	}
-
-	// Timezone offsets with the ":".
-	value = ParseTime("2014-04-30T15:56:42-0600")
-	if value == nil {
-		t.Fatalf("unexpected nil")
-	}
-	if value.Unix() != 1398895002 {
-		t.Fatalf("expected 1398895002, got %d", value.Unix())
-	}
-
 }
 
 // Test durations the UI may present, or we provide in the

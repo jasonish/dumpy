@@ -23,25 +23,25 @@ func TestConfigGetSpoolByName(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	spool, err := config.GetSpoolByName("first")
-	if err != nil {
-		t.Fatal(err)
+	spool := config.GetSpoolByName("first")
+	if spool == nil {
+		t.Fatal("spool first not found")
 	}
 	AssertEquals(t, spool.Name, "first")
 	AssertEquals(t, spool.Directory, "/capture/first")
 	AssertEquals(t, spool.Prefix, "first.pcap")
 
-	spool, err = config.GetSpoolByName("second")
-	if err != nil {
-		t.Fatal(err)
+	spool = config.GetSpoolByName("second")
+	if spool == nil {
+		t.Fatal("spool second not found")
 	}
 	AssertEquals(t, spool.Name, "second")
 	AssertEquals(t, spool.Directory, "/capture/second")
 	AssertEquals(t, spool.Prefix, "second.pcap")
 
-	_, err = config.GetSpoolByName("third")
-	if err == nil {
-		t.Fatalf("expected error while getting non-existant spool by name")
+	spool = config.GetSpoolByName("third")
+	if err != nil {
+		t.Fatalf("expected nil instead of a spool")
 	}
 
 }

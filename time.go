@@ -39,9 +39,11 @@ func ParseTime(value string, defaultTimezoneOffset string) *time.Time {
 	}
 
 	// Try adding the default timezone offset.
-	result, err = time.Parse(time.RFC3339Nano, value+defaultTimezoneOffset)
-	if err == nil {
-		return &result
+	if defaultTimezoneOffset != "" {
+		result, err = time.Parse(time.RFC3339Nano, value+defaultTimezoneOffset)
+		if err == nil {
+			return &result
+		}
 	}
 
 	return nil
