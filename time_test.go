@@ -35,6 +35,15 @@ func TestParseTime(t *testing.T) {
 	if value.Unix() != 1398895002 {
 		t.Fatalf("expected 1398895002, got %d", value.Unix())
 	}
+
+	// With modified timezone offset.
+	value = ParseTime("2014-04-30T15:56:42.857989-0600", "")
+	if value == nil {
+		t.Fatalf("unexpected nil")
+	}
+	if value.Unix() != 1398895002 {
+		t.Fatalf("expected 1398895002, got %d", value.Unix())
+	}
 }
 
 // Test durations the UI may present, or we provide in the

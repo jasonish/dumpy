@@ -24,8 +24,9 @@ $(document).ready(function () {
 
     // If there is an event entered already, set the tab active.
     if ($("#event-input").val() != "") {
-	$('#query-tabs a[href="#event-tab"]').tab('show')
-        $("#query-type").val($(this).attr("query-type"));
+	var tab = $('#query-tabs a[href="#event-tab"]');
+	tab.tab('show')
+        $("#query-type").val(tab.attr("query-type"));
     }
 
 });

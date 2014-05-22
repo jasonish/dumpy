@@ -65,11 +65,17 @@ type Event struct {
 
 func (e *Event) ToPcapFilter() string {
 
-	return fmt.Sprintf(
-		"proto %s and ((host %s and port %d) and (host %s and port %d))",
-		e.Protocol,
-		e.SourceAddr, e.SourcePort,
-		e.DestAddr, e.DestPort)
+	if e.SourcePort > 0 && e.DestPort > 0 {
+		return fmt.Sprintf(
+			"proto %s and ((host %s and port %d) and (host %s and port %d))",
+			e.Protocol,
+			e.SourceAddr, e.SourcePort,
+			e.DestAddr, e.DestPort)
+	} else {
+		return fmt.Sprintf(
+			"proto %s and host %s and host %s",
+			e.Protocol, e.SourceAddr, e.DestAddr)
+	}
 }
 
 func DecodeSnortFastEventTimestamp(buf string) string {

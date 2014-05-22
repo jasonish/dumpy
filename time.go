@@ -30,10 +30,20 @@ import "time"
 
 // Time related functions.
 
+const (
+	RFC3339Nano_Modified = "2006-01-02T15:04:05.999999999Z0700"
+)
+
 func ParseTime(value string, defaultTimezoneOffset string) *time.Time {
 
 	// First try as RFC3339Nano.
 	result, err := time.Parse(time.RFC3339Nano, value)
+	if err == nil {
+		return &result
+	}
+
+	// First try as RFC3339Nano.
+	result, err = time.Parse(RFC3339Nano_Modified, value)
 	if err == nil {
 		return &result
 	}
