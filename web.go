@@ -50,6 +50,8 @@ type IndexHandler struct {
 
 func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
+	preparedEvent := r.FormValue("event")
+
 	box, err := rice.FindBox("www")
 	if err != nil {
 		log.Fatal(err)
@@ -61,6 +63,7 @@ func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	model := map[string]interface{}{
 		"spools": h.config.Spools,
+		"event":  preparedEvent,
 	}
 
 	templatePage, err := template.New("index").Parse(indexString)
