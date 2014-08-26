@@ -7,7 +7,7 @@ function setStartTime(unit, value) {
         $("input[name='start-time']").val(moment().format())
     }
     else {
-        $("input[name='start-time']").val(moment().subtract(unit, value).format())
+        $("input[name='start-time']").val(moment().subtract(value, unit).format())
     }
 }
 

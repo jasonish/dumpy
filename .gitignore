@@ -11,3 +11,6 @@ dumpy.yaml*
 # IntelliJ files.
 *.iml
 /.idea
+
+# Bower components.
+/bower_components/
