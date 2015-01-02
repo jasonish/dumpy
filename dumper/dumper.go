@@ -34,7 +34,7 @@ import (
 	"path"
 	"strings"
 
-	"dumpy/libpcap"
+	"github.com/jasonish/dumpy/libpcap"
 )
 
 var verbose bool = false

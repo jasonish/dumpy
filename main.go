@@ -27,7 +27,7 @@
 package main
 
 import (
-	"dumpy/dumper"
+	"github.com/jasonish/dumpy/dumper"
 	"flag"
 	"fmt"
 	"os"
