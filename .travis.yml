@@ -1,6 +1,0 @@
-language: go
-
-go:
-  - 1.2
-
-script: make get-go-deps && go test -f ./...

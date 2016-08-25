@@ -33,7 +33,7 @@ import (
 	"strings"
 	"github.com/gorilla/context"
 
-	"code.google.com/p/go.crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type HandlerWrapper struct {

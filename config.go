@@ -38,7 +38,7 @@ import (
 	"gopkg.in/yaml.v1"
 
 	"crypto/md5"
-	"code.google.com/p/go.crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (

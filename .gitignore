@@ -14,3 +14,6 @@ dumpy.yaml*
 
 # Bower components.
 /bower_components/
+
+# Glide/vendor.
+/vendor
