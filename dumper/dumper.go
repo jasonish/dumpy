@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Jason Ish. All rights reserved.
+// Copyright (c) 2014-2016 Jason Ish. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -32,12 +32,38 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
+	"sort"
 
 	"github.com/jasonish/dumpy/libpcap"
 )
 
 var verbose bool = false
+
+// PcapFilenames - type and interface functions to allow filename sorting.
+type PcapFilenames []string
+
+func (pf PcapFilenames) Len() int {
+	return len(pf)
+}
+
+func (pf PcapFilenames) Swap(i, j int) {
+	pf[i], pf[j] = pf[j], pf[i]
+}
+
+func (pf PcapFilenames) Less(i, j int) bool {
+	log.Println("Comparing", pf[i], pf[j])
+	iTime, err := getStartSeconds(pf[i])
+	if err != nil {
+		log.Fatal(err)
+	}
+	jTime, err := getStartSeconds(pf[j])
+	if err != nil {
+		log.Fatal(err)
+	}
+	return iTime < jTime
+}
 
 func getStartSeconds(filename string) (int64, error) {
 	var seconds int64
@@ -61,14 +87,14 @@ func getStartSeconds(filename string) (int64, error) {
 //
 // The list of files returned is just a slice of the provided list
 // with the start index updated.
-func filterOnStartTime(directory string, files []os.FileInfo, startTime int64) []os.FileInfo {
+func filterOnStartTime(filenames []string, startTime int64) []string {
 
 	startIdx := 0
 
-	for idx, file := range files {
-		fileStartTime, err := getStartSeconds(path.Join(directory, file.Name()))
+	for idx, filename := range filenames {
+		fileStartTime, err := getStartSeconds(filename)
 		if err != nil {
-			continue
+			log.Println("Failed to get start time for file ", filename)
 		}
 		if fileStartTime >= startTime {
 			break
@@ -76,34 +102,60 @@ func filterOnStartTime(directory string, files []os.FileInfo, startTime int64) [
 		startIdx = idx
 	}
 
-	return files[startIdx:]
+	return filenames[startIdx:]
 }
 
 // getFiles returns a list of files in the named directory that start
 // with the given prefix. Filenames are sorted per ioutil.ReadDir.
-func getFiles(directory string, prefix string) ([]os.FileInfo, error) {
-	files, err := ioutil.ReadDir(directory)
-	if err != nil {
-		return nil, err
-	}
+func findFiles(directory string, prefix string, recursive bool) ([]string, error) {
 
-	filtered := make([]os.FileInfo, len(files))
-	filteredIdx := 0
+	var pcap_filenames []string
 
-	for _, file := range files {
-		if strings.HasPrefix(file.Name(), prefix) {
-			filtered[filteredIdx] = file
-			filteredIdx++
+	if recursive {
+		err := filepath.Walk(directory,
+			func(pathname string, fileInfo os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+
+				if fileInfo.IsDir() {
+					return nil
+				}
+
+				if strings.HasPrefix(path.Base(pathname), prefix) {
+					pcap_filenames = append(pcap_filenames, pathname)
+				}
+
+				return nil
+			})
+		if err != nil {
+			log.Fatal(err)
 		}
+	} else {
+		files, err := ioutil.ReadDir(directory)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, file := range files {
+			if strings.HasPrefix(file.Name(), prefix) {
+				filename := path.Join(directory, file.Name())
+				pcap_filenames = append(pcap_filenames, filename)
+			}
+		}
+
 	}
 
-	return filtered[0:filteredIdx], nil
+	sort.Sort(PcapFilenames(pcap_filenames))
+
+	return pcap_filenames, nil
 }
 
 // Dumper sub-program entry point.
 func DumperMain(args []string) {
 
 	var directory string
+	var recursive bool
 	var prefix string
 	var startTime int64
 	var duration int64
@@ -114,6 +166,7 @@ func DumperMain(args []string) {
 
 	flagset := flag.NewFlagSet("dumper", flag.ExitOnError)
 	flagset.StringVar(&directory, "directory", "", "capture directory")
+	flagset.BoolVar(&recursive, "recursive", false, "process directory recursively")
 	flagset.StringVar(&prefix, "prefix", "", "filename prefix")
 	flagset.Int64Var(&startTime, "start-time", 0,
 		"start time in unix time (seconds)")
@@ -129,19 +182,19 @@ func DumperMain(args []string) {
 		log.Fatalf("-start-time and -duration required")
 	}
 
-	files, err := getFiles(directory, prefix)
+	filenames, err := findFiles(directory, prefix, recursive)
 	if err != nil {
 		log.Fatal(err)
 	}
-	files = filterOnStartTime(directory, files, startTime)
+	filenames = filterOnStartTime(filenames, startTime)
 
 	var dumper *libpcap.Dumper
 
-	for _, file := range files {
+	for _, file := range filenames {
 		if verbose {
-			log.Printf("opening file %s", file.Name())
+			log.Printf("opening file %s", file)
 		}
-		pcap, err := libpcap.OpenOffline(path.Join(directory, file.Name()))
+		pcap, err := libpcap.OpenOffline(file)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -161,7 +214,7 @@ func DumperMain(args []string) {
 			} else {
 				if packet.Seconds() < startTime {
 					continue
-				} else if packet.Seconds() > startTime+duration {
+				} else if packet.Seconds() > startTime + duration {
 					break
 				}
 				if dumper == nil {
