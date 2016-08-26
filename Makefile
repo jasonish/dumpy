@@ -1,11 +1,16 @@
-GODEPS :=	github.com/GeertJohan/go.rice \
-		github.com/GeertJohan/go.rice/rice \
-		golang.org/x/crypto/bcrypt \
-		github.com/gorilla/mux \
-		gopkg.in/yaml.v1
-
 all:
-	go build -o dumpy
+	go build
+
+install-deps:
+	glide install
+	npm install moment
+	npm install bootstrap
+	npm install jquery
+	cp node_modules/bootstrap/dist/css/bootstrap.min.css www/vendor
+	cp node_modules/bootstrap/dist/js/bootstrap.min.js www/vendor
+	cp node_modules/jquery/dist/jquery.min.js www/vendor
+	cp node_modules/jquery/dist/jquery.min.map www/vendor
+	cp node_modules/moment/min/moment.min.js www/vendor
 
 dist: VERSION = $(shell ./dumpy version)
 dist: GOHOSTARCH = $(shell go env GOHOSTARCH)
@@ -23,23 +28,3 @@ clean:
 	rm -f dumpy
 	rm -rf dist
 	find . -name \*~ -exec rm -f {} \;
-
-get-go-deps:
-	@for dep in $(GODEPS); do \
-		echo "go get $$dep"; \
-		go get $$dep; \
-	done
-
-update-go-deps:
-	@for dep in $(GODEPS); do \
-		echo "go get -u $$dep"; \
-		go get -u $$dep; \
-	done
-
-update-bower-components:
-	bower update
-	cp bower_components/bootstrap/dist/css/bootstrap.min.css www/vendor
-	cp bower_components/bootstrap/dist/js/bootstrap.min.js www/vendor
-	cp bower_components/jquery/dist/jquery.min.js www/vendor
-	cp bower_components/jquery/dist/jquery.min.map www/vendor
-	cp bower_components/moment/min/moment.min.js www/vendor
