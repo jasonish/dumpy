@@ -6,6 +6,7 @@ install-deps:
 	npm install moment
 	npm install bootstrap
 	npm install jquery
+	mkdir -p www/vendor
 	cp node_modules/bootstrap/dist/css/bootstrap.min.css www/vendor
 	cp node_modules/bootstrap/dist/js/bootstrap.min.js www/vendor
 	cp node_modules/jquery/dist/jquery.min.js www/vendor
