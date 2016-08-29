@@ -1,6 +1,6 @@
 GODEPS :=	github.com/GeertJohan/go.rice \
 		github.com/GeertJohan/go.rice/rice \
-		code.google.com/p/go.crypto/bcrypt \
+		golang.org/x/crypto/bcrypt \
 		github.com/gorilla/mux \
 		gopkg.in/yaml.v1
 
