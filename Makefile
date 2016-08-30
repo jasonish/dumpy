@@ -1,5 +1,7 @@
 all:
 	go build
+	rice -v append --exec dumpy || \
+		echo "warning: rice not found: static assets won't be bundled"
 
 install-deps:
 	glide install
@@ -18,7 +20,6 @@ dist: GOHOSTARCH = $(shell go env GOHOSTARCH)
 dist: GOHOSTOS = $(shell go env GOHOSTOS)
 dist: DISTNAME = dumpy-$(VERSION)-$(GOHOSTOS)-$(GOHOSTARCH)
 dist: all
-	rice -v append --exec dumpy
 	mkdir -p dist/$(DISTNAME)
 	cp README.md dist/$(DISTNAME)
 	cp LICENSE.txt dist/$(DISTNAME)
