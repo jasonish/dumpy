@@ -136,6 +136,9 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 		"-duration", strconv.FormatInt(int64(duration.Seconds()), 10),
 		"-filter", filter,
 	}
+	if spool.Recursive {
+		dumperArgs = append(dumperArgs, "-recursive")
+	}
 	h.RunDumper(w, r, dumperArgs)
 }
 
