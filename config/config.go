@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package main
+package config
 
 import (
 	"bytes"
@@ -154,7 +154,7 @@ func (c *SpoolCommand) Usage() {
 
 func (c *SpoolCommand) Run(args []string) int {
 
-	flagset = flag.NewFlagSet("dumpy config spool", flag.ExitOnError)
+	flagset := flag.NewFlagSet("dumpy config spool", flag.ExitOnError)
 	showUsage := flagset.Bool("h", false, "usage")
 	flagset.Usage = c.Usage
 	flagset.Parse(args)

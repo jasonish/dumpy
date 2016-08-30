@@ -34,6 +34,7 @@ import (
 
 	"github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
+	"github.com/jasonish/dumpy/config"
 )
 
 func HttpErrorAndLog(w http.ResponseWriter, r *http.Request, code int,
@@ -45,7 +46,7 @@ func HttpErrorAndLog(w http.ResponseWriter, r *http.Request, code int,
 }
 
 type IndexHandler struct {
-	config *Config
+	config *config.Config
 }
 
 func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +71,7 @@ func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	templatePage.Execute(w, model)
 }
 
-func StartServer(config *Config) {
+func StartServer(config *config.Config) {
 
 	authenticator := NewAuthenticator(config)
 

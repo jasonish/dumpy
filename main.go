@@ -31,6 +31,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"github.com/jasonish/dumpy/config"
 )
 
 // Global logger.
@@ -70,9 +71,9 @@ func main() {
 		case "dump":
 			dumper.DumperMain(os.Args[2:])
 		case "config":
-			ConfigMain(NewConfig(configFilename), os.Args[2:])
+			config.ConfigMain(config.NewConfig(configFilename), os.Args[2:])
 		case "start":
-			StartServer(NewConfig(configFilename))
+			StartServer(config.NewConfig(configFilename))
 		case "generate-cert":
 			GenerateCertMain(os.Args[2:])
 		}

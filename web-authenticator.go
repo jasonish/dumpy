@@ -34,6 +34,7 @@ import (
 	"github.com/gorilla/context"
 
 	"golang.org/x/crypto/bcrypt"
+	"github.com/jasonish/dumpy/config"
 )
 
 type HandlerWrapper struct {
@@ -55,7 +56,7 @@ type Authenticator struct {
 	users map[string]string
 }
 
-func NewAuthenticator(config *Config) *Authenticator {
+func NewAuthenticator(config *config.Config) *Authenticator {
 	if len(config.Users) == 0 {
 		logger.Printf("WARNING: No users configuration. Authentication disabled.")
 	}

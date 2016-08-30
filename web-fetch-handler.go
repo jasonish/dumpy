@@ -35,6 +35,7 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+	"github.com/jasonish/dumpy/config"
 )
 
 // FetchHandler is the HTTP handler for "fetch" (download) requests of
@@ -62,7 +63,7 @@ import (
 //       to be used if not timezone offset is present in the filter
 //       string.
 type FetchHandler struct {
-	config *Config
+	config *config.Config
 }
 
 func (h *FetchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
