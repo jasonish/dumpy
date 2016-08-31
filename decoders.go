@@ -39,8 +39,13 @@ var (
 	parsers_debug = true
 
 	snortFastTimestampPattern = regexp.MustCompile("^(?P<month>\\d\\d)\\/(?P<day>\\d\\d)(?:\\/)?(?P<year>\\d{4})?-(?P<hour>\\d\\d):(?P<minute>\\d\\d):(?P<seconds>\\d\\d).(?P<microseconds>\\d+)")
-	snortFastEventRegexp      = regexp.MustCompile("{(?P<protocol>\\d+|\\w+)}\\s([\\d\\.]+):?(\\d+)?\\s..\\s([\\d\\.]+):?(\\d+)?")
+	snortFastEventRegexp = regexp.MustCompile("{(?P<protocol>\\d+|\\w+)}\\s([\\d\\.]+):?(\\d+)?\\s..\\s([\\d\\.]+):?(\\d+)?")
 )
+
+type SuricataEveFlow struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
 
 type SuricataJsonEvent struct {
 	Timestamp  string `json:"timestamp"`
@@ -49,6 +54,9 @@ type SuricataJsonEvent struct {
 	SourcePort uint16 `json:"src_port"`
 	DestAddr   string `json:"dest_ip"`
 	DestPort   uint16 `json:"dest_port"`
+	EventType  string `json:"event_type"`
+
+	Flow       SuricataEveFlow `json:"flow"`
 }
 
 type Event struct {
@@ -59,8 +67,11 @@ type Event struct {
 	DestAddr   string
 	DestPort   uint16
 
+	EventType  string
+	Flow       SuricataEveFlow
+
 	// The original event.
-	Original string
+	Original   string
 }
 
 func (e *Event) ToPcapFilter() string {
@@ -141,12 +152,16 @@ func DecodeSuricataJsonEvent(buf string) *Event {
 
 	suricataJsonEvent := SuricataJsonEvent{}
 
+	log.Println("** Decoding...")
+
 	if err := json.Unmarshal(([]byte)(buf), &suricataJsonEvent); err != nil {
 		if parsers_debug {
 			log.Print(err)
 		}
 		return nil
 	}
+	log.Println(suricataJsonEvent.EventType)
+	log.Println(suricataJsonEvent.Flow)
 
 	return &Event{
 		Timestamp:  suricataJsonEvent.Timestamp,
@@ -155,6 +170,10 @@ func DecodeSuricataJsonEvent(buf string) *Event {
 		SourcePort: suricataJsonEvent.SourcePort,
 		DestAddr:   suricataJsonEvent.DestAddr,
 		DestPort:   suricataJsonEvent.DestPort,
+		EventType: suricataJsonEvent.EventType,
+
+		Flow: suricataJsonEvent.Flow,
+
 		Original:   buf,
 	}
 }

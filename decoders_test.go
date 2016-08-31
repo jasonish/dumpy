@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+func FailIf(t *testing.T, expression bool) {
+	if expression {
+		t.FailNow()
+	}
+}
+
 func TestSnortFastEventDecoder(t *testing.T) {
 
 	eventBuffer := "11/15-22:56:29.943914  [**] [1:498:8] INDICATOR-COMPROMISE id check returned root [**] [Classification: Potentially Bad Traffic] [Priority: 2] {TCP} 217.160.51.31:80 -> 172.16.1.11:33189"
@@ -55,4 +61,80 @@ func TestSuricataJsonEventDecoder(t *testing.T) {
 	AssertEquals(t, event.DestAddr, "255.255.255.255")
 	AssertEquals(t, event.DestPort, (uint16)(18500))
 
+}
+
+func TestDececodSuricataEveFlowEvent(t *testing.T) {
+	raw := `{
+    "timestamp": "2016-08-30T21:25:54.000103-0600",
+    "flow_id": 956293338,
+    "event_type": "flow",
+    "src_ip": "10.16.1.10",
+    "src_port": 45744,
+    "dest_ip": "216.17.8.3",
+    "dest_port": 443,
+    "proto": "TCP",
+    "flow": {
+      "pkts_toserver": 4,
+      "pkts_toclient": 4,
+      "bytes_toserver": 260,
+      "bytes_toclient": 248,
+      "start": "2016-08-30T21:24:31.075881-0600",
+      "end": "2016-08-30T21:24:52.926643-0600",
+      "age": 21,
+      "state": "new",
+      "reason": "timeout"
+    },
+    "tcp": {
+      "tcp_flags": "00",
+      "tcp_flags_ts": "00",
+      "tcp_flags_tc": "00"
+    },
+    "host": "fw",
+    "@version": "1",
+    "@timestamp": "2016-08-31T03:25:54.000Z",
+    "input_type": "log",
+    "count": 1,
+    "offset": 134731057,
+    "source": "/var/log/suricata/eve.json",
+    "type": "log",
+    "fields": {
+      "type": "eve"
+    },
+    "beat": {
+      "hostname": "fw.unx.ca",
+      "name": "fw.unx.ca"
+    },
+    "tags": [
+      "beats_input_codec_json_applied"
+    ],
+    "geoip": {
+      "ip": "216.17.8.3",
+      "country_code2": "US",
+      "country_code3": "USA",
+      "country_name": "United States",
+      "continent_code": "NA",
+      "region_name": "MN",
+      "city_name": "Plymouth",
+      "postal_code": "55441",
+      "latitude": 45.0059,
+      "longitude": -93.4305,
+      "dma_code": 613,
+      "area_code": 763,
+      "timezone": "America/Chicago",
+      "real_region_name": "Minnesota",
+      "location": [
+        -93.4305,
+        45.0059
+      ],
+      "coordinates": [
+        -93.4305,
+        45.0059
+      ]
+    }
+  }`
+
+	event, err := DecodeEvent(raw)
+	FailIf(t, err != nil)
+	FailIf(t, event == nil)
+	FailIf(t, event.EventType != "flow")
 }
