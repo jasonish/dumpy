@@ -32,8 +32,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/gorilla/context"
 )
 
 // Logger is a wrapper around the standard logger that implements some
@@ -43,20 +41,18 @@ type Logger struct {
 }
 
 func NewLogger(prefix string) *Logger {
-	return &Logger{log.New(os.Stderr, prefix, log.Ldate|log.Ltime)}
+	return &Logger{log.New(os.Stderr, prefix, log.Ldate | log.Ltime)}
 }
 
 func (l *Logger) PrintfWithRequest(r *http.Request, format string, v ...interface{}) {
-	l.Printf("[%s@%s] %s",
-		context.Get(r, "username"),
-		l.getRemoteAddr(r),
+	user := r.Context().Value("User").(*User)
+	l.Printf("[%s@%s] %s", user.Username, l.getRemoteAddr(r),
 		fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) PrintWithRequest(r *http.Request, v ...interface{}) {
-	l.Printf("[%s@%s] %s",
-		context.Get(r, "username"),
-		l.getRemoteAddr(r),
+	user := r.Context().Value("User").(*User)
+	l.Printf("[%s@%s] %s", user.Username, l.getRemoteAddr(r),
 		fmt.Sprint(v...))
 }
 

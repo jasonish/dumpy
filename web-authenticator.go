@@ -31,11 +31,15 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"github.com/gorilla/context"
 
+	"golang.org/x/net/context"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/jasonish/dumpy/config"
 )
+
+type User struct {
+	Username string
+}
 
 type HandlerWrapper struct {
 	authenticator *Authenticator
@@ -43,8 +47,10 @@ type HandlerWrapper struct {
 }
 
 func (hw *HandlerWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if hw.authenticator.authenticate(r) {
-		hw.handler.ServeHTTP(w, r)
+	user := hw.authenticator.authenticate(r)
+	if user != nil {
+		hw.handler.ServeHTTP(w, r.WithContext(context.WithValue(
+			r.Context(), "User", user)))
 	} else {
 		w.Header().Add("WWW-Authenticate", "Basic realm=restricted")
 		http.Error(w, http.StatusText(http.StatusUnauthorized),
@@ -93,35 +99,20 @@ func (a *Authenticator) CheckUsernameAndPassword(username string, password strin
 	return false
 }
 
-func (a *Authenticator) authenticate(request *http.Request) bool {
-	if len(a.users) == 0 {
-		context.Set(request, "username", "<anonymous>")
-		return true
-	}
-	authHeader := request.Header.Get("authorization")
-	if authHeader != "" {
-		username, password := a.GetUsernameAndPassword(authHeader)
-		if username != "" {
-			if a.CheckUsernameAndPassword(username, password) {
-				context.Set(request, "username", username)
-				return true
-			}
-		}
-	}
-	return false
-}
+func (a *Authenticator) authenticate(request *http.Request) *User {
 
-func (a *Authenticator) WrapHandlerFunc(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	wrapper := func(w http.ResponseWriter, r *http.Request) {
-		if a.authenticate(r) {
-			handler(w, r)
-		} else {
-			w.Header().Add("WWW-Authenticate", "Basic realm=restricted")
-			http.Error(w, http.StatusText(http.StatusUnauthorized),
-				http.StatusUnauthorized)
+	if len(a.users) == 0 {
+		return &User{Username: "anonymous"}
+	}
+
+	username, password, ok := request.BasicAuth()
+	if ok {
+		if a.CheckUsernameAndPassword(username, password) {
+			return &User{username}
 		}
 	}
-	return wrapper
+
+	return nil
 }
 
 func (a *Authenticator) WrapHandler(handler http.Handler) http.Handler {

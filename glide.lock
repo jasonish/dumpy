@@ -1,5 +1,5 @@
-hash: 49309cdd3bca449d2770fe8f9685dbfbe0684b0abbedec961a6844cdee6ac83c
-updated: 2016-08-25T11:07:50.889803173-06:00
+hash: 9e6d239f67d28b93d4e32f37826b49915ff25e769ca2f4cb4293a0a1b18af989
+updated: 2016-08-31T01:46:44.211560423-06:00
 imports:
 - name: github.com/daaku/go.zipexe
   version: a5fe2436ffcb3236e175e5149162b41cd28bd27d
@@ -18,6 +18,10 @@ imports:
   subpackages:
   - bcrypt
   - blowfish
+- name: golang.org/x/net
+  version: f841c39de738b1d0df95b5a7187744f0e03d8112
+  subpackages:
+  - context
 - name: gopkg.in/yaml.v1
   version: 9f9df34309c04878acc86042b16630b0f696e1de
-devImports: []
+testImports: []
