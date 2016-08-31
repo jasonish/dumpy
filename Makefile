@@ -3,6 +3,9 @@ all:
 	rice -v append --exec dumpy || \
 		echo "warning: rice not found: static assets won't be bundled"
 
+test:
+	@go test $(shell go list ./... | grep -v /vendor/)
+
 install-deps:
 	glide install
 	npm install moment
