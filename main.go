@@ -32,13 +32,14 @@ import (
 	"fmt"
 	"os"
 	"github.com/jasonish/dumpy/config"
+	"log"
 )
 
 // Global logger.
 var logger = NewLogger("")
 
 func Usage() {
-	fmt.Printf(`
+	fmt.Fprintf(os.Stderr, `
 Usage: dumpy [options] <command>
 
 Options:
@@ -54,6 +55,10 @@ Commands:
 `)
 }
 
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
+
 func main() {
 
 	var configFilename string
@@ -64,6 +69,7 @@ func main() {
 
 	if len(flag.Args()) < 1 {
 		Usage()
+		os.Exit(1)
 	} else {
 		switch flag.Args()[0] {
 		case "version":
@@ -73,9 +79,12 @@ func main() {
 		case "config":
 			config.ConfigMain(config.NewConfig(configFilename), os.Args[2:])
 		case "start":
+			log.Println("Starting server...")
 			StartServer(config.NewConfig(configFilename))
 		case "generate-cert":
 			GenerateCertMain(os.Args[2:])
+		default:
+			log.Println("Bad command:", flag.Args()[0])
 		}
 	}
 

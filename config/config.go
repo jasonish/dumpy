@@ -42,8 +42,8 @@ import (
 )
 
 const (
-	DEFAULT_PORT              = 7000
-	DEFAULT_TLS_KEY_FILENAME  = "key.pem"
+	DEFAULT_PORT = 7000
+	DEFAULT_TLS_KEY_FILENAME = "key.pem"
 	DEFAULT_TLS_CERT_FILENAME = "cert.pem"
 )
 
@@ -64,10 +64,10 @@ type Config struct {
 	filename string
 	checksum []byte
 
-	Port   int               `json:"port"`
-	Tls    TlsConfig         `json:"tls"`
-	Spools []*SpoolConfig    `json:"spools"`
-	Users  map[string]string `json:"users"`
+	Port     int               `json:"port"`
+	Tls      TlsConfig         `json:"tls"`
+	Spools   []*SpoolConfig    `json:"spools"`
+	Users    map[string]string `json:"users"`
 }
 
 func NewConfig(filename string) *Config {
@@ -96,6 +96,7 @@ func NewConfig(filename string) *Config {
 	return &config
 }
 
+// Get a spool by name.
 func (c *Config) GetSpoolByName(name string) *SpoolConfig {
 	for _, spool := range c.Spools {
 		if spool.Name == name {
@@ -103,6 +104,23 @@ func (c *Config) GetSpoolByName(name string) *SpoolConfig {
 		}
 	}
 	return nil
+}
+
+// Get the first spool listed (the default).
+func (c *Config) GetFirstSpool() *SpoolConfig {
+	if len(c.Spools) > 0 {
+		return c.Spools[0]
+	}
+	return nil
+}
+
+// Get a spool by name falling back to the default.
+func (c *Config) GetSpoolByNameOrDefault(name string) *SpoolConfig {
+	spool := c.GetSpoolByName(name)
+	if spool != nil {
+		return spool
+	}
+	return c.GetFirstSpool()
 }
 
 func (c *Config) Checksum() []byte {
@@ -142,7 +160,6 @@ func (c *Config) Write() {
 	os.Link(tmp, c.filename)
 	os.Remove(tmp)
 }
-
 
 func PasswdCommand(config *Config, args []string) {
 

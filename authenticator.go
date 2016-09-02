@@ -32,30 +32,12 @@ import (
 	"net/http"
 	"strings"
 
-	"golang.org/x/net/context"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/jasonish/dumpy/config"
 )
 
 type User struct {
 	Username string
-}
-
-type HandlerWrapper struct {
-	authenticator *Authenticator
-	handler       http.Handler
-}
-
-func (hw *HandlerWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	user := hw.authenticator.authenticate(r)
-	if user != nil {
-		hw.handler.ServeHTTP(w, r.WithContext(context.WithValue(
-			r.Context(), "User", user)))
-	} else {
-		w.Header().Add("WWW-Authenticate", "Basic realm=restricted")
-		http.Error(w, http.StatusText(http.StatusUnauthorized),
-			http.StatusUnauthorized)
-	}
 }
 
 type Authenticator struct {
@@ -99,7 +81,7 @@ func (a *Authenticator) CheckUsernameAndPassword(username string, password strin
 	return false
 }
 
-func (a *Authenticator) authenticate(request *http.Request) *User {
+func (a *Authenticator) AuthenticateHttpRequest(request *http.Request) *User {
 
 	if len(a.users) == 0 {
 		return &User{Username: "anonymous"}
@@ -113,8 +95,4 @@ func (a *Authenticator) authenticate(request *http.Request) *User {
 	}
 
 	return nil
-}
-
-func (a *Authenticator) WrapHandler(handler http.Handler) http.Handler {
-	return &HandlerWrapper{a, handler}
 }

@@ -29,15 +29,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 	"time"
 )
 
 var (
-	parsers_debug = true
-
 	snortFastTimestampPattern = regexp.MustCompile("^(?P<month>\\d\\d)\\/(?P<day>\\d\\d)(?:\\/)?(?P<year>\\d{4})?-(?P<hour>\\d\\d):(?P<minute>\\d\\d):(?P<seconds>\\d\\d).(?P<microseconds>\\d+)")
 	snortFastEventRegexp = regexp.MustCompile("{(?P<protocol>\\d+|\\w+)}\\s([\\d\\.]+):?(\\d+)?\\s..\\s([\\d\\.]+):?(\\d+)?")
 )
@@ -110,30 +107,18 @@ func DecodeSnortFastEvent(buf string) *Event {
 
 	eventMatches := snortFastEventRegexp.FindStringSubmatch(buf)
 	if eventMatches == nil {
-		if parsers_debug {
-			log.Printf("event did not match snortFastEventRegexp")
-		}
 		return nil
 	}
 	timestamp := DecodeSnortFastEventTimestamp(buf)
 	if timestamp == "" {
-		if parsers_debug {
-			log.Printf("failed to decode snort fast timestamp")
-		}
 		return nil
 	}
 	sourcePort, err := strconv.ParseUint(eventMatches[3], 10, 16)
 	if err != nil {
-		if parsers_debug {
-			log.Print(err)
-		}
 		return nil
 	}
 	destPort, err := strconv.ParseUint(eventMatches[5], 10, 16)
 	if err != nil {
-		if parsers_debug {
-			log.Print(err)
-		}
 		return nil
 	}
 	return &Event{
@@ -152,16 +137,9 @@ func DecodeSuricataJsonEvent(buf string) *Event {
 
 	suricataJsonEvent := SuricataJsonEvent{}
 
-	log.Println("** Decoding...")
-
 	if err := json.Unmarshal(([]byte)(buf), &suricataJsonEvent); err != nil {
-		if parsers_debug {
-			log.Print(err)
-		}
 		return nil
 	}
-	log.Println(suricataJsonEvent.EventType)
-	log.Println(suricataJsonEvent.Flow)
 
 	return &Event{
 		Timestamp:  suricataJsonEvent.Timestamp,
