@@ -135,7 +135,7 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 		"-duration", strconv.FormatInt(int64(duration.Seconds()), 10),
 		"-filter", filter,
 	}
-	h.RunDumper(w, r, dumperArgs)
+	h.RunDumper(w, r, dumperArgs, 0)
 }
 
 func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request) {
@@ -196,10 +196,10 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 		"-duration", strconv.FormatInt(int64(duration.Seconds()), 10),
 		"-filter", event.ToPcapFilter(),
 	}
-	h.RunDumper(w, r, dumperArgs)
+	h.RunDumper(w, r, dumperArgs, event.SignatureId)
 }
 
-func (h *FetchHandler) RunDumper(w http.ResponseWriter, r *http.Request, args []string) {
+func (h *FetchHandler) RunDumper(w http.ResponseWriter, r *http.Request, args []string, signature_id uint32) {
 	dumper := exec.Command(os.Args[0], "dump")
 	dumper.Args = append(dumper.Args, args...)
 
@@ -250,9 +250,14 @@ func (h *FetchHandler) RunDumper(w http.ResponseWriter, r *http.Request, args []
 		}
 
 		if bytesWritten == 0 {
+			var cdstr string
+			if signature_id != 0 {
+				cdstr = fmt.Sprintf("attachment; filename=%d.pcap", signature_id)
+			} else {
+				cdstr = "attachment; filename=dumpy.pcap"
+			}
 			w.Header().Add("content-type", "application/vnd.tcpdump.pcap")
-			w.Header().Add("content-disposition",
-				"attachment; filename=dumpy.pcap")
+			w.Header().Add("content-disposition", cdstr)
 		}
 		n, err = w.Write(buf[0:n])
 		if err != nil {
