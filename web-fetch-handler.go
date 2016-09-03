@@ -27,14 +27,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"os/exec"
-	"strconv"
 	"time"
+	"github.com/jasonish/dumpy/config"
+	"github.com/jasonish/dumpy/dumper"
 )
 
 // FetchHandler is the HTTP handler for "fetch" (download) requests of
@@ -62,7 +59,7 @@ import (
 //       to be used if not timezone offset is present in the filter
 //       string.
 type FetchHandler struct {
-	config *Config
+	config *config.Config
 }
 
 func (h *FetchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -97,14 +94,14 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 
 	startTime, err := time.Parse(time.RFC3339, argStartTime)
 	if err != nil {
-		http.Error(w, "failed to parse time: "+err.Error(),
+		http.Error(w, "failed to parse time: " + err.Error(),
 			http.StatusBadRequest)
 		return
 	}
 
 	duration, err := time.ParseDuration(argDuration)
 	if err != nil {
-		http.Error(w, "failed to parse duraction: "+err.Error(),
+		http.Error(w, "failed to parse duraction: " + err.Error(),
 			http.StatusBadRequest)
 		return
 	}
@@ -128,14 +125,17 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 			"pcap-filter": filter,
 		})
 
-	dumperArgs := []string{
-		"-directory", spool.Directory,
-		"-prefix", spool.Prefix,
-		"-start-time", strconv.FormatInt(startTime.Unix(), 10),
-		"-duration", strconv.FormatInt(int64(duration.Seconds()), 10),
-		"-filter", filter,
+	dumperOptions := dumper.DumperOptions{
+		Directory: spool.Directory,
+		Prefix: spool.Prefix,
+		StartTime: startTime.Unix(),
+		Duration: int64(duration.Seconds()),
+		Filter: filter,
+		Recursive: spool.Recursive,
 	}
-	h.RunDumper(w, r, dumperArgs, 0)
+
+	dumperProxy := DumperProxy{dumperOptions, w, "dumpy.pcap"}
+	dumperProxy.Run()
 }
 
 func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request) {
@@ -146,10 +146,9 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	eventTimestamp := ParseTime(event.Timestamp,
-		r.FormValue("default-timezone-offset"))
-	if eventTimestamp == nil {
-		http.Error(w, "failed to parse timestamp: "+event.Timestamp,
+	eventTimestamp, err := ParseTime(event.Timestamp)
+	if err != nil {
+		http.Error(w, "failed to parse timestamp: " + event.Timestamp,
 			http.StatusBadRequest)
 		return
 	}
@@ -189,89 +188,15 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 			"event":       event.Original,
 		})
 
-	dumperArgs := []string{
-		"-directory", spool.Directory,
-		"-prefix", spool.Prefix,
-		"-start-time", strconv.FormatInt(startTime.Unix(), 10),
-		"-duration", strconv.FormatInt(int64(duration.Seconds()), 10),
-		"-filter", event.ToPcapFilter(),
-	}
-	h.RunDumper(w, r, dumperArgs, event.SignatureId)
-}
-
-func (h *FetchHandler) RunDumper(w http.ResponseWriter, r *http.Request, args []string, signature_id uint32) {
-	dumper := exec.Command(os.Args[0], "dump")
-	dumper.Args = append(dumper.Args, args...)
-
-	stdout, err := dumper.StdoutPipe()
-	if err != nil {
-		http.Error(w, "failed to attach pipe: "+err.Error(),
-			http.StatusInternalServerError)
-		return
+	dumperOptions := dumper.DumperOptions{
+		Directory: spool.Directory,
+		Prefix: spool.Prefix,
+		Recursive: spool.Recursive,
+		StartTime: startTime.Unix(),
+		Duration: int64(duration.Seconds()),
+		Filter: event.ToPcapFilter(),
 	}
 
-	stderr, err := dumper.StderrPipe()
-	if err != nil {
-		http.Error(w, "failed to attach stderr pipe: "+err.Error(),
-			http.StatusInternalServerError)
-		return
-	}
-
-	// For logging.
-	go func() {
-		reader := bufio.NewReader(stderr)
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				break
-			}
-			logger.Printf("dumpy dumper [%d] (stderr) %s", dumper.Process.Pid, line)
-		}
-	}()
-
-	err = dumper.Start()
-	if err != nil {
-		HttpErrorAndLog(w, r, http.StatusInternalServerError,
-			"failed to execute dumper: %s", err)
-		return
-	}
-	logger.PrintfWithRequest(r, "dumper with pid %d started: %s",
-		dumper.Process.Pid, dumper.Args)
-
-	bytesWritten := 0
-	for {
-		buf := make([]byte, 8192)
-		n, err := stdout.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				logger.PrintfWithRequest(r, "unexpected dump error: %s", err)
-			}
-			break
-		}
-
-		if bytesWritten == 0 {
-			var cdstr string
-			if signature_id != 0 {
-				cdstr = fmt.Sprintf("attachment; filename=%d.pcap", signature_id)
-			} else {
-				cdstr = "attachment; filename=dumpy.pcap"
-			}
-			w.Header().Add("content-type", "application/vnd.tcpdump.pcap")
-			w.Header().Add("content-disposition", cdstr)
-		}
-		n, err = w.Write(buf[0:n])
-		if err != nil {
-			logger.PrintfWithRequest(r,
-				"Write failed; client may have disconnected: %s", err)
-			break
-		}
-		bytesWritten += n
-	}
-
-	if bytesWritten == 0 {
-		http.Error(w, "No packets found.", http.StatusNotFound)
-	} else {
-		logger.PrintfWithRequest(r, "Wrote %d bytes of packet data",
-			bytesWritten)
-	}
+	dumperProxy := DumperProxy{dumperOptions, w, fmt.Sprintf("%d.pcap", event.SignatureId)}
+	dumperProxy.Run()
 }

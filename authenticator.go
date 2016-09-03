@@ -31,31 +31,20 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"github.com/gorilla/context"
 
 	"golang.org/x/crypto/bcrypt"
+	"github.com/jasonish/dumpy/config"
 )
 
-type HandlerWrapper struct {
-	authenticator *Authenticator
-	handler       http.Handler
-}
-
-func (hw *HandlerWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if hw.authenticator.authenticate(r) {
-		hw.handler.ServeHTTP(w, r)
-	} else {
-		w.Header().Add("WWW-Authenticate", "Basic realm=restricted")
-		http.Error(w, http.StatusText(http.StatusUnauthorized),
-			http.StatusUnauthorized)
-	}
+type User struct {
+	Username string
 }
 
 type Authenticator struct {
 	users map[string]string
 }
 
-func NewAuthenticator(config *Config) *Authenticator {
+func NewAuthenticator(config *config.Config) *Authenticator {
 	if len(config.Users) == 0 {
 		logger.Printf("WARNING: No users configuration. Authentication disabled.")
 	}
@@ -92,37 +81,18 @@ func (a *Authenticator) CheckUsernameAndPassword(username string, password strin
 	return false
 }
 
-func (a *Authenticator) authenticate(request *http.Request) bool {
+func (a *Authenticator) AuthenticateHttpRequest(request *http.Request) *User {
+
 	if len(a.users) == 0 {
-		context.Set(request, "username", "<anonymous>")
-		return true
+		return &User{Username: "anonymous"}
 	}
-	authHeader := request.Header.Get("authorization")
-	if authHeader != "" {
-		username, password := a.GetUsernameAndPassword(authHeader)
-		if username != "" {
-			if a.CheckUsernameAndPassword(username, password) {
-				context.Set(request, "username", username)
-				return true
-			}
+
+	username, password, ok := request.BasicAuth()
+	if ok {
+		if a.CheckUsernameAndPassword(username, password) {
+			return &User{username}
 		}
 	}
-	return false
-}
 
-func (a *Authenticator) WrapHandlerFunc(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	wrapper := func(w http.ResponseWriter, r *http.Request) {
-		if a.authenticate(r) {
-			handler(w, r)
-		} else {
-			w.Header().Add("WWW-Authenticate", "Basic realm=restricted")
-			http.Error(w, http.StatusText(http.StatusUnauthorized),
-				http.StatusUnauthorized)
-		}
-	}
-	return wrapper
-}
-
-func (a *Authenticator) WrapHandler(handler http.Handler) http.Handler {
-	return &HandlerWrapper{a, handler}
+	return nil
 }

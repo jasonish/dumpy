@@ -12,8 +12,6 @@ dumpy.yaml*
 *.iml
 /.idea
 
-# Bower components.
-/bower_components/
-
-# Glide/vendor.
+# Thirdy party packages.
 /vendor
+/node_modules

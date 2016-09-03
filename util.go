@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Jason Ish. All rights reserved.
+// Copyright (c) 2016 Jason Ish. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -26,38 +26,32 @@
 
 package main
 
-import (
-	"time"
-	"errors"
-)
+import "testing"
 
-// Time related functions.
-
-const (
-	// Just like RFC3339Nano but allow for a timezone offset without
-	// the ":" between the hours and minutes.
-	RFC3339Nano_Modified = "2006-01-02T15:04:05.999999999Z0700"
-)
-
-// Utility time parsing function that can handle the following formats:
-//
-// - 2014-04-30T21:54:09Z
-// - 2014-04-30T15:56:42-06:00
-// - 2014-04-30T15:56:42-0600
-// - 2014-04-30T15:56:42.857989-0600
-func ParseTime(value string) (time.Time, error) {
-
-	// First try as RFC3339Nano.
-	result, err := time.Parse(time.RFC3339Nano, value)
-	if err == nil {
-		return result, nil
+func FailIf(t *testing.T, expression bool) {
+	if expression {
+		t.FailNow()
 	}
+}
 
-	// Then try out modified RFC3339Nano.
-	result, err = time.Parse(RFC3339Nano_Modified, value)
-	if err == nil {
-		return result, nil
+func FailIfNil(t *testing.T, value interface{}) {
+	if value == nil {
+		t.FailNow()
 	}
+}
 
-	return time.Time{}, errors.New("Failed to parse time")
+func FailIfNotNil(t *testing.T, value interface{}) {
+	if value != nil {
+		t.FailNow()
+	}
+}
+
+func FailIfNotEqual(t *testing.T, expected interface{}, actual interface{}) {
+	if expected != actual {
+		t.Fatalf("expected %v, got %v", expected, actual)
+	}
+}
+
+func AssertEquals(t *testing.T, value interface{}, expected interface{}) {
+	FailIfNotEqual(t, expected, value)
 }

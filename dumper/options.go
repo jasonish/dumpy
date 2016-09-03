@@ -24,68 +24,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package main
+package dumper
 
-import (
-	"github.com/jasonish/dumpy/dumper"
-	"flag"
-	"fmt"
-	"os"
-	"github.com/jasonish/dumpy/config"
-	"log"
-)
-
-// Global logger.
-var logger = NewLogger("")
-
-func Usage() {
-	fmt.Fprintf(os.Stderr, `
-Usage: dumpy [options] <command>
-
-Options:
-    -config <file>       Path to the configuration file
-
-Commands:
-    start                Start the server
-    version              Display version and exit
-    config               Configuration tool
-    dump                 Command to process pcap files
-    generate-cert        Generate a self signed TLS certificate
-
-`)
-}
-
-func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-}
-
-func main() {
-
-	var configFilename string
-
-	flag.Usage = Usage
-	flag.StringVar(&configFilename, "config", "dumpy.yaml", "config file")
-	flag.Parse()
-
-	if len(flag.Args()) < 1 {
-		Usage()
-		os.Exit(1)
-	} else {
-		switch flag.Args()[0] {
-		case "version":
-			fmt.Println(VERSION)
-		case "dump":
-			dumper.DumperMain(os.Args[2:])
-		case "config":
-			config.ConfigMain(config.NewConfig(configFilename), os.Args[2:])
-		case "start":
-			log.Println("Starting server...")
-			StartServer(config.NewConfig(configFilename))
-		case "generate-cert":
-			GenerateCertMain(os.Args[2:])
-		default:
-			log.Println("Bad command:", flag.Args()[0])
-		}
-	}
-
+type DumperOptions struct {
+	StartTime int64
+	Duration  int64
+	Directory string
+	Prefix    string
+	Recursive bool
+	Filter string
 }
