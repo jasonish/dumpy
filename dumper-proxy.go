@@ -35,12 +35,14 @@ import (
 	"os/exec"
 	"bufio"
 	"io"
+	"fmt"
 )
 
 // DumperProxy - proxies the output from
 type DumperProxy struct {
 	options dumper.DumperOptions
 	writer  http.ResponseWriter
+	filename string
 }
 
 func (dp *DumperProxy) BuildArgs() []string {
@@ -130,7 +132,7 @@ func (dp *DumperProxy) Run() {
 		if bytesWritten == 0 {
 			dp.writer.Header().Add("content-type", "application/vnd.tcpdump.pcap")
 			dp.writer.Header().Add("content-disposition",
-				"attachment; filename=dumpy.pcap")
+				fmt.Sprintf("attachment; filename=%s", dp.filename))
 		}
 
 		m, err := dp.writer.Write(buf[0:n])

@@ -106,7 +106,7 @@ func ApiV1DownloadRequestHandler(c *config.Config, w http.ResponseWriter, r *htt
 		dumperOptions.Recursive = spool.Recursive
 	}
 
-	dumperProxy := DumperProxy{dumperOptions, w}
+	dumperProxy := DumperProxy{dumperOptions, w, "dumpy.pcap"}
 	dumperProxy.Run()
 
 	return nil
