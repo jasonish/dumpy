@@ -52,7 +52,7 @@ type SuricataJsonEvent struct {
 	DestAddr   string `json:"dest_ip"`
 	DestPort   uint16 `json:"dest_port"`
 	EventType  string `json:"event_type"`
-	Alert SuricataJsonAlert `json:"alert"`
+	Alert      SuricataJsonAlert `json:"alert"`
 	Flow       SuricataEveFlow `json:"flow"`
 }
 
@@ -61,18 +61,18 @@ type SuricataJsonAlert struct {
 }
 
 type Event struct {
-	Timestamp  string
-	Protocol   string
-	SourceAddr string
-	SourcePort uint16
-	DestAddr   string
-	DestPort   uint16
-	EventType  string
+	Timestamp   string
+	Protocol    string
+	SourceAddr  string
+	SourcePort  uint16
+	DestAddr    string
+	DestPort    uint16
+	EventType   string
 	SignatureId uint32
-	Flow       SuricataEveFlow
+	Flow        SuricataEveFlow
 
 	// The original event.
-	Original   string
+	Original    string
 }
 
 func (e *Event) ToPcapFilter() string {
@@ -154,6 +154,7 @@ func DecodeSuricataJsonEvent(buf string) *Event {
 		DestPort:   suricataJsonEvent.DestPort,
 		EventType: suricataJsonEvent.EventType,
 		SignatureId: suricataJsonEvent.Alert.SignatureId,
+		Flow: suricataJsonEvent.Flow,
 		Original:   buf,
 	}
 }
