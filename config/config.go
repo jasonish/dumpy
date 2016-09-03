@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package main
+package config
 
 import (
 	"bytes"
@@ -42,8 +42,8 @@ import (
 )
 
 const (
-	DEFAULT_PORT              = 7000
-	DEFAULT_TLS_KEY_FILENAME  = "key.pem"
+	DEFAULT_PORT = 7000
+	DEFAULT_TLS_KEY_FILENAME = "key.pem"
 	DEFAULT_TLS_CERT_FILENAME = "cert.pem"
 )
 
@@ -57,16 +57,17 @@ type SpoolConfig struct {
 	Name      string `json:"name"`
 	Directory string `json:"directory"`
 	Prefix    string `json:"prefix"`
+	Recursive bool `json:"recursive"`
 }
 
 type Config struct {
 	filename string
 	checksum []byte
 
-	Port   int               `json:"port"`
-	Tls    TlsConfig         `json:"tls"`
-	Spools []*SpoolConfig    `json:"spools"`
-	Users  map[string]string `json:"users"`
+	Port     int               `json:"port"`
+	Tls      TlsConfig         `json:"tls"`
+	Spools   []*SpoolConfig    `json:"spools"`
+	Users    map[string]string `json:"users"`
 }
 
 func NewConfig(filename string) *Config {
@@ -95,6 +96,7 @@ func NewConfig(filename string) *Config {
 	return &config
 }
 
+// Get a spool by name.
 func (c *Config) GetSpoolByName(name string) *SpoolConfig {
 	for _, spool := range c.Spools {
 		if spool.Name == name {
@@ -102,6 +104,23 @@ func (c *Config) GetSpoolByName(name string) *SpoolConfig {
 		}
 	}
 	return nil
+}
+
+// Get the first spool listed (the default).
+func (c *Config) GetFirstSpool() *SpoolConfig {
+	if len(c.Spools) > 0 {
+		return c.Spools[0]
+	}
+	return nil
+}
+
+// Get a spool by name falling back to the default.
+func (c *Config) GetSpoolByNameOrDefault(name string) *SpoolConfig {
+	spool := c.GetSpoolByName(name)
+	if spool != nil {
+		return spool
+	}
+	return c.GetFirstSpool()
 }
 
 func (c *Config) Checksum() []byte {
@@ -140,90 +159,6 @@ func (c *Config) Write() {
 	os.Remove(c.filename)
 	os.Link(tmp, c.filename)
 	os.Remove(tmp)
-}
-
-type SpoolCommand struct {
-	config *Config
-}
-
-func (c *SpoolCommand) Usage() {
-	log.Printf(`usage: dumpy config spool add <name> <directory> <prefix>
-   or: dumpy config spool remove <name>
-`)
-}
-
-func (c *SpoolCommand) Run(args []string) int {
-
-	flagset = flag.NewFlagSet("dumpy config spool", flag.ExitOnError)
-	showUsage := flagset.Bool("h", false, "usage")
-	flagset.Usage = c.Usage
-	flagset.Parse(args)
-	if *showUsage || flagset.NArg() == 0 {
-		c.Usage()
-		return 1
-	}
-
-	command := flagset.Args()[0]
-	switch command {
-	case "add":
-		return c.Add(flagset.Args()[1:])
-	case "remove":
-		return c.Remove(flagset.Args()[1:])
-	default:
-		log.Printf("dumpy config spool: unknown sub-command: %s", command)
-		return 1
-	}
-}
-
-func (c *SpoolCommand) Add(args []string) int {
-	if len(args) < 3 {
-		log.Printf("error: not enough arguments")
-		c.Usage()
-		return 1
-	}
-	spoolName := args[0]
-	spoolDirectory := args[1]
-	spoolPrefix := args[2]
-
-	if spool := c.config.GetSpoolByName(spoolName); spool != nil {
-		log.Printf("error: spool %s already exists", spoolName)
-		return 1
-	}
-
-	spool := SpoolConfig{
-		Name:      spoolName,
-		Directory: spoolDirectory,
-		Prefix:    spoolPrefix,
-	}
-
-	c.config.Spools = append(c.config.Spools, &spool)
-
-	return 0
-}
-
-func (c *SpoolCommand) Remove(args []string) int {
-	if len(args) < 1 {
-		log.Printf("error: not enough arguments")
-		c.Usage()
-		return 1
-	}
-	spoolName := args[0]
-
-	spool := c.config.GetSpoolByName(spoolName)
-	if spool == nil {
-		log.Printf("error: no spool named %s", spoolName)
-		return 1
-	}
-
-	for idx, spool := range c.config.Spools {
-		if spool.Name == spoolName {
-			c.config.Spools = append(c.config.Spools[:idx],
-				c.config.Spools[idx+1:]...)
-			break
-		}
-	}
-
-	return 0
 }
 
 func PasswdCommand(config *Config, args []string) {

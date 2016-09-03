@@ -24,7 +24,9 @@ tcpdump.
       directory /data/capture and a filename prefix of
       daemonlogger.pcap - this matches the use of daemonlogger above):
 
-			./dumpy config spool add default /data/capture daemonlogger.pcap
+
+			./dumpy config spool add -name default -directory /data/capture \
+			    -prefix daemonlogger.pcap
 
     * Add a user:
 
@@ -38,18 +40,21 @@ tcpdump.
 
 ## Building
 
-Building dumpy requires a Go(lang) development environment.
-Additionally libpcap with development headers is also required.
-Assuming thos requirements are satisfied:
+Building Dumpy requires:
+- A working Go 1.7 development environment.
+- The [Glide](https://github.com/Masterminds/glide) package management tool
+  for Go installed.
+- A working [Node.js](https://nodejs.org/en/) install with npm for frontend
+  dependencies.
+- [Rice](https://github.com/GeertJohan/go.rice) - a tool for bundling static
+  assets, like the web pages within the built binary.
 
-1. Install Go dependencies:
+Then:
 
-		make get-go-deps
+1. Install dependencies:
 
-2. Build:
+    make install-deps
 
-		make
+2. Build
 
-	or
-
-		go build
+    make
