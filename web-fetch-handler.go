@@ -94,14 +94,14 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 
 	startTime, err := time.Parse(time.RFC3339, argStartTime)
 	if err != nil {
-		http.Error(w, "failed to parse time: "+err.Error(),
+		http.Error(w, "failed to parse time: " + err.Error(),
 			http.StatusBadRequest)
 		return
 	}
 
 	duration, err := time.ParseDuration(argDuration)
 	if err != nil {
-		http.Error(w, "failed to parse duraction: "+err.Error(),
+		http.Error(w, "failed to parse duraction: " + err.Error(),
 			http.StatusBadRequest)
 		return
 	}
@@ -134,7 +134,7 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 		Recursive: spool.Recursive,
 	}
 
-	dumperProxy := DumperProxy{dumperOptions, w}
+	dumperProxy := DumperProxy{dumperOptions, w, "dumpy.pcap"}
 	dumperProxy.Run()
 }
 
@@ -148,7 +148,7 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 
 	eventTimestamp, err := ParseTime(event.Timestamp)
 	if err != nil {
-		http.Error(w, "failed to parse timestamp: "+event.Timestamp,
+		http.Error(w, "failed to parse timestamp: " + event.Timestamp,
 			http.StatusBadRequest)
 		return
 	}
@@ -197,6 +197,6 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 		Filter: event.ToPcapFilter(),
 	}
 
-	dumperProxy := DumperProxy{dumperOptions, w}
+	dumperProxy := DumperProxy{dumperOptions, w, fmt.Sprintf("%d.pcap", event.SignatureId)}
 	dumperProxy.Run()
 }

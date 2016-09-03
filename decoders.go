@@ -52,8 +52,12 @@ type SuricataJsonEvent struct {
 	DestAddr   string `json:"dest_ip"`
 	DestPort   uint16 `json:"dest_port"`
 	EventType  string `json:"event_type"`
-
+	Alert SuricataJsonAlert `json:"alert"`
 	Flow       SuricataEveFlow `json:"flow"`
+}
+
+type SuricataJsonAlert struct {
+	SignatureId uint32 `json:"signature_id"`
 }
 
 type Event struct {
@@ -63,6 +67,7 @@ type Event struct {
 	SourcePort uint16
 	DestAddr   string
 	DestPort   uint16
+	SignatureId uint32
 
 	EventType  string
 	Flow       SuricataEveFlow
@@ -149,9 +154,8 @@ func DecodeSuricataJsonEvent(buf string) *Event {
 		DestAddr:   suricataJsonEvent.DestAddr,
 		DestPort:   suricataJsonEvent.DestPort,
 		EventType: suricataJsonEvent.EventType,
-
+		SignatureId: suricataJsonEvent.Alert.SignatureId,
 		Flow: suricataJsonEvent.Flow,
-
 		Original:   buf,
 	}
 }
