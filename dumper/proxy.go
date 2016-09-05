@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Jason Ish. All rights reserved.
+// Copyright (c) 2016 Jason Ish. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -24,68 +24,25 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package main
+package dumper
 
 import (
-	"flag"
-	"fmt"
-	"os"
 	"github.com/jasonish/dumpy/config"
-	"log"
-	"github.com/jasonish/dumpy/cmd"
+	"net/http"
 )
 
-// Global logger.
-var logger = NewLogger("")
-
-func Usage() {
-	fmt.Fprintf(os.Stderr, `
-Usage: dumpy [options] <command>
-
-Options:
-    -config <file>       Path to the configuration file
-
-Commands:
-    start                Start the server
-    version              Display version and exit
-    config               Configuration tool
-    dump                 Command to process pcap files
-    generate-cert        Generate a self signed TLS certificate
-
-`)
+type Proxy interface {
+	Run()
 }
 
-func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+type ProxyCreator interface {
+	NewProxy(spoolConfig *config.SpoolConfig, options DumperOptions, w http.ResponseWriter, filename string) Proxy
 }
 
-func main() {
+type DefaultProxyCreator struct{}
 
-	var configFilename string
+func (pc DefaultProxyCreator) NewProxy(spoolConfig *config.SpoolConfig, options DumperOptions, w http.ResponseWriter, filename string) Proxy {
 
-	flag.Usage = Usage
-	flag.StringVar(&configFilename, "config", "dumpy.yaml", "config file")
-	flag.Parse()
-
-	if len(flag.Args()) < 1 {
-		Usage()
-		os.Exit(1)
-	} else {
-		switch flag.Args()[0] {
-		case "version":
-			fmt.Println(VERSION)
-		case "dump":
-			cmd.DumperMain(os.Args[2:])
-		case "config":
-			config.ConfigMain(config.NewConfigFromFile(configFilename), os.Args[2:])
-		case "start":
-			log.Println("Starting server...")
-			StartServer(config.NewConfigFromFile(configFilename))
-		case "generate-cert":
-			GenerateCertMain(os.Args[2:])
-		default:
-			log.Println("Bad command:", flag.Args()[0])
-		}
-	}
+	return &DumperProxy{options, w, filename}
 
 }

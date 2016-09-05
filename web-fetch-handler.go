@@ -134,7 +134,7 @@ func (h *FetchHandler) HandleFilterRequest(w http.ResponseWriter, r *http.Reques
 		Recursive: spool.Recursive,
 	}
 
-	dumperProxy := DumperProxy{dumperOptions, w, "dumpy.pcap"}
+	dumperProxy := dumper.DumperProxy{dumperOptions, w, "dumpy.pcap"}
 	dumperProxy.Run()
 }
 
@@ -197,6 +197,6 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 		Filter: event.ToPcapFilter(),
 	}
 
-	dumperProxy := DumperProxy{dumperOptions, w, fmt.Sprintf("%d.pcap", event.SignatureId)}
+	dumperProxy := dumper.DumperProxy{dumperOptions, w, fmt.Sprintf("%d.pcap", event.SignatureId)}
 	dumperProxy.Run()
 }

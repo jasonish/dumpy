@@ -37,6 +37,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jasonish/dumpy/config"
 	"golang.org/x/net/context"
+	"github.com/jasonish/dumpy/env"
 )
 
 func HttpErrorAndLog(w http.ResponseWriter, r *http.Request, code int, format string, v ...interface{}) {
@@ -130,6 +131,9 @@ func AuthMiddlewareHandler(authenticator *Authenticator, h http.Handler) http.Ha
 
 func StartServer(config *config.Config) {
 
+	env := env.New()
+	env.Config = config
+
 	authenticator := NewAuthenticator(config)
 	router := mux.NewRouter()
 
@@ -137,7 +141,7 @@ func StartServer(config *config.Config) {
 	router.Handle("/fetch", &FetchHandler{config})
 
 	// Setup API v1 handlers.
-	ApiV1SetupRoutes(config, router.PathPrefix("/api/1").Subrouter())
+	ApiV1SetupRoutes(env, router.PathPrefix("/api/1").Subrouter())
 
 	router.HandleFunc("/version", VersionHandlerFunc)
 

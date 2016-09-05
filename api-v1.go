@@ -35,6 +35,7 @@ import (
 	"github.com/jasonish/dumpy/config"
 	"errors"
 	"fmt"
+	"github.com/jasonish/dumpy/env"
 )
 
 func ParseTimestamp(timestamp string) (int64, error) {
@@ -49,8 +50,7 @@ func ParseTimestamp(timestamp string) (int64, error) {
 	return 0, errors.New(fmt.Sprintf("Failed to parse timestamp: %s", timestamp))
 }
 
-func ApiV1DownloadRequestHandler(c *config.Config, w http.ResponseWriter, r *http.Request) error {
-
+func ApiV1DownloadRequestHandler(env env.Env, w http.ResponseWriter, r *http.Request) error {
 	dumperOptions := dumper.DumperOptions{}
 	var err error
 	filename := "dumpy.pcap"
@@ -98,12 +98,12 @@ func ApiV1DownloadRequestHandler(c *config.Config, w http.ResponseWriter, r *htt
 	var spool *config.SpoolConfig
 
 	if r.FormValue("spool") != "" {
-		spool = c.GetSpoolByName(r.FormValue("spool"))
+		spool = env.Config.GetSpoolByName(r.FormValue("spool"))
 		if spool == nil {
 			return &HttpError{"Spool not found: " + r.FormValue("spool"), http.StatusBadRequest}
 		}
 	} else {
-		spool = c.GetFirstSpool()
+		spool = env.Config.GetFirstSpool()
 	}
 
 	if spool == nil {
@@ -114,20 +114,20 @@ func ApiV1DownloadRequestHandler(c *config.Config, w http.ResponseWriter, r *htt
 		dumperOptions.Recursive = spool.Recursive
 	}
 
-	dumperProxy := DumperProxy{dumperOptions, w, filename}
-	dumperProxy.Run()
+	proxy := env.ProxyCreator.NewProxy(spool, dumperOptions, w, filename)
+	proxy.Run()
 
 	return nil
 }
 
 type ApiV1Handler struct {
-	config  *config.Config
-	handler func(config *config.Config, w http.ResponseWriter, r *http.Request) error
+	env     env.Env
+	handler func(env env.Env, w http.ResponseWriter, r *http.Request) error
 }
 
 func (h ApiV1Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	err := h.handler(h.config, w, r)
+	err := h.handler(h.env, w, r)
 	if err != nil {
 		switch t := err.(type) {
 		case *HttpError:
@@ -139,6 +139,6 @@ func (h ApiV1Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func ApiV1SetupRoutes(config *config.Config, router *mux.Router) {
-	router.Handle("/download", ApiV1Handler{config, ApiV1DownloadRequestHandler})
+func ApiV1SetupRoutes(env env.Env, router *mux.Router) {
+	router.Handle("/download", ApiV1Handler{env, ApiV1DownloadRequestHandler})
 }

@@ -24,45 +24,106 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// APIv1 test code. This is a bit of a mess right now.
+
 package main
 
 import (
-	"testing"
-	"net/http"
 	"github.com/jasonish/dumpy/config"
+	"github.com/jasonish/dumpy/dumper"
+	"github.com/jasonish/dumpy/env"
+	"github.com/jasonish/dumpy/test"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"testing"
 )
 
-func TestApiV1DownloadRequestHandler(t *testing.T) {
+type MockProxy struct {
+	options  dumper.DumperOptions
+	filename string
+	didRun   bool
+}
 
-	// Wrapper function to convert the error returned from a handler to a *HttpError.
-	errorConverter := func(c *config.Config, w http.ResponseWriter, r *http.Request, fn func(c *config.Config, w http.ResponseWriter, r *http.Request) error) *HttpError {
-		err := fn(c, w, r)
-		httpError := err.(*HttpError)
-		return httpError
+func (p *MockProxy) Run() {
+	p.didRun = true
+}
+
+type MockProxyDumpCreator struct {
+	proxy *MockProxy
+}
+
+func (c *MockProxyDumpCreator) NewProxy(spoolConfig *config.SpoolConfig,
+	options dumper.DumperOptions, w http.ResponseWriter, filename string) dumper.Proxy {
+	c.proxy = &MockProxy{options: options,
+		filename: filename}
+	return c.proxy
+}
+
+func (c *MockProxyDumpCreator) GetProxy() *MockProxy {
+	return c.proxy
+}
+
+func apiV1RequestWrapper(env env.Env, w http.ResponseWriter, r *http.Request,
+	fn func(env env.Env, w http.ResponseWriter, r *http.Request) error) *HttpError {
+	err := fn(env, w, r)
+	if err != nil {
+		return err.(*HttpError)
 	}
+	return nil
+}
 
-	doSomething(&DumperProxy{})
+func TestApiV1TestDownloadValid(t *testing.T) {
+	env := env.New()
+	mockProxyCreator := MockProxyDumpCreator{}
+	env.ProxyCreator = &mockProxyCreator
 
-	c := config.NewConfig()
+	// Create an emtpy spool to be used as the default.
+	env.Config.Spools = []*config.SpoolConfig{
+		&config.SpoolConfig{},
+	}
 
 	// endTime and duration not allowed together.
 	request := &http.Request{
 		Method: "GET",
-		URL: &url.URL{Path: "/api/v1/download"},
+		URL:    &url.URL{Path: "/api/v1/download"},
 		Form: url.Values{
-			"endTime": {"1"},
+			"startTime": {"0"},
+			"duration":  {"1s"},
+		},
+	}
+
+	rr := httptest.NewRecorder()
+	err := apiV1RequestWrapper(env, rr, request, ApiV1DownloadRequestHandler)
+	test.FailIf(t, err != nil)
+	proxy := mockProxyCreator.GetProxy()
+	test.FailIfNot(t, proxy.didRun)
+	test.FailIf(t, proxy.options.StartTime != 0)
+	test.FailIf(t, proxy.options.Duration != 1)
+}
+
+// Test that if endTime and duration are provided that we fail the request.
+func TestApiV1DownloadRequestHandler(t *testing.T) {
+	env := env.New()
+	env.ProxyCreator = &MockProxyDumpCreator{}
+
+	// endTime and duration not allowed together.
+	request := &http.Request{
+		Method: "GET",
+		URL:    &url.URL{Path: "/api/v1/download"},
+		Form: url.Values{
+			"endTime":  {"1"},
 			"duration": {"1s"},
 		},
 	}
 
 	rr := httptest.NewRecorder()
-	err := errorConverter(c, rr, request, ApiV1DownloadRequestHandler)
+	err := apiV1RequestWrapper(env, rr, request, ApiV1DownloadRequestHandler)
 	if err == nil {
 		t.Fatal("err should not be nil")
 	}
 	if err.Code != http.StatusBadRequest {
 		t.Fatal("unexpected error code")
 	}
+
 }
