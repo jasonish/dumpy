@@ -82,7 +82,7 @@ func main() {
 			log.Println("Starting server...")
 			StartServer(config.NewConfigFromFile(configFilename))
 		case "generate-cert":
-			GenerateCertMain(os.Args[2:])
+			cmd.GenerateCertMain(os.Args[2:])
 		default:
 			log.Println("Bad command:", flag.Args()[0])
 		}

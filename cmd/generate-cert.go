@@ -7,7 +7,7 @@
 
 // Adapted to be used as a sub-command.
 
-package main
+package cmd
 
 import (
 	"crypto/rand"
