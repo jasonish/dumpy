@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Jason Ish. All rights reserved.
+// Copyright (c) 2016 Jason Ish. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -27,65 +27,42 @@
 package main
 
 import (
-	"github.com/jasonish/dumpy/dumper"
-	"flag"
-	"fmt"
-	"os"
+	"testing"
+	"net/http"
 	"github.com/jasonish/dumpy/config"
-	"log"
+	"net/http/httptest"
+	"net/url"
 )
 
-// Global logger.
-var logger = NewLogger("")
+func TestApiV1DownloadRequestHandler(t *testing.T) {
 
-func Usage() {
-	fmt.Fprintf(os.Stderr, `
-Usage: dumpy [options] <command>
-
-Options:
-    -config <file>       Path to the configuration file
-
-Commands:
-    start                Start the server
-    version              Display version and exit
-    config               Configuration tool
-    dump                 Command to process pcap files
-    generate-cert        Generate a self signed TLS certificate
-
-`)
-}
-
-func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-}
-
-func main() {
-
-	var configFilename string
-
-	flag.Usage = Usage
-	flag.StringVar(&configFilename, "config", "dumpy.yaml", "config file")
-	flag.Parse()
-
-	if len(flag.Args()) < 1 {
-		Usage()
-		os.Exit(1)
-	} else {
-		switch flag.Args()[0] {
-		case "version":
-			fmt.Println(VERSION)
-		case "dump":
-			dumper.DumperMain(os.Args[2:])
-		case "config":
-			config.ConfigMain(config.NewConfigFromFile(configFilename), os.Args[2:])
-		case "start":
-			log.Println("Starting server...")
-			StartServer(config.NewConfigFromFile(configFilename))
-		case "generate-cert":
-			GenerateCertMain(os.Args[2:])
-		default:
-			log.Println("Bad command:", flag.Args()[0])
-		}
+	// Wrapper function to convert the error returned from a handler to a *HttpError.
+	errorConverter := func(c *config.Config, w http.ResponseWriter, r *http.Request, fn func(c *config.Config, w http.ResponseWriter, r *http.Request) error) *HttpError {
+		err := fn(c, w, r)
+		httpError := err.(*HttpError)
+		return httpError
 	}
 
+	doSomething(&DumperProxy{})
+
+	c := config.NewConfig()
+
+	// endTime and duration not allowed together.
+	request := &http.Request{
+		Method: "GET",
+		URL: &url.URL{Path: "/api/v1/download"},
+		Form: url.Values{
+			"endTime": {"1"},
+			"duration": {"1s"},
+		},
+	}
+
+	rr := httptest.NewRecorder()
+	err := errorConverter(c, rr, request, ApiV1DownloadRequestHandler)
+	if err == nil {
+		t.Fatal("err should not be nil")
+	}
+	if err.Code != http.StatusBadRequest {
+		t.Fatal("unexpected error code")
+	}
 }
