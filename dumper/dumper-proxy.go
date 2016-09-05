@@ -24,10 +24,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package main
+package dumper
 
 import (
-	"github.com/jasonish/dumpy/dumper"
 	"net/http"
 	"strconv"
 	"log"
@@ -40,38 +39,38 @@ import (
 
 // DumperProxy - proxies the output from
 type DumperProxy struct {
-	options dumper.DumperOptions
-	writer  http.ResponseWriter
-	filename string
+	Options  DumperOptions
+	Writer   http.ResponseWriter
+	Filename string
 }
 
 func (dp *DumperProxy) BuildArgs() []string {
 	args := []string{"dump"}
 
-	if dp.options.Directory != "" {
+	if dp.Options.Directory != "" {
 		args = append(args, "-directory")
-		args = append(args, dp.options.Directory)
+		args = append(args, dp.Options.Directory)
 	}
 
-	if dp.options.Prefix != "" {
+	if dp.Options.Prefix != "" {
 		args = append(args, "-prefix")
-		args = append(args, dp.options.Prefix)
+		args = append(args, dp.Options.Prefix)
 	}
 
 	args = append(args, []string{"-start-time",
-		strconv.FormatInt(dp.options.StartTime, 10)}...)
+		strconv.FormatInt(dp.Options.StartTime, 10)}...)
 
-	if dp.options.Duration > 0 {
+	if dp.Options.Duration > 0 {
 		args = append(args, "-duration")
-		args = append(args, strconv.FormatInt(dp.options.Duration, 10))
+		args = append(args, strconv.FormatInt(dp.Options.Duration, 10))
 	}
 
-	if dp.options.Filter != "" {
+	if dp.Options.Filter != "" {
 		args = append(args, "-filter")
-		args = append(args, dp.options.Filter)
+		args = append(args, dp.Options.Filter)
 	}
 
-	if dp.options.Recursive {
+	if dp.Options.Recursive {
 		args = append(args, "-recursive")
 	}
 
@@ -123,19 +122,19 @@ func (dp *DumperProxy) Run() {
 			if err != io.EOF {
 				log.Printf("error reading from stdin: %s", err.Error())
 				if bytesWritten == 0 {
-					http.Error(dp.writer, err.Error(), http.StatusInternalServerError)
+					http.Error(dp.Writer, err.Error(), http.StatusInternalServerError)
 				}
 			}
 			break
 		}
 
 		if bytesWritten == 0 {
-			dp.writer.Header().Add("content-type", "application/vnd.tcpdump.pcap")
-			dp.writer.Header().Add("content-disposition",
-				fmt.Sprintf("attachment; filename=%s", dp.filename))
+			dp.Writer.Header().Add("content-type", "application/vnd.tcpdump.pcap")
+			dp.Writer.Header().Add("content-disposition",
+				fmt.Sprintf("attachment; filename=%s", dp.Filename))
 		}
 
-		m, err := dp.writer.Write(buf[0:n])
+		m, err := dp.Writer.Write(buf[0:n])
 		if err != nil {
 			log.Printf("Failed to write to http client: %v", err.Error())
 		}
@@ -148,7 +147,7 @@ func (dp *DumperProxy) Run() {
 	}
 
 	if bytesWritten == 0 {
-		http.Error(dp.writer, "No packets found.", http.StatusNotFound)
+		http.Error(dp.Writer, "No packets found.", http.StatusNotFound)
 	}
 
 	log.Printf("Wrote %d bytes of pcap data.", bytesWritten)
