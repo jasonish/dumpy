@@ -70,8 +70,8 @@ type Config struct {
 	Users    map[string]string `json:"users"`
 }
 
-func NewConfig(filename string) *Config {
-	config := Config{filename: filename}
+func NewConfig() *Config {
+	config := Config{}
 
 	// Set some defaults.
 	config.Port = DEFAULT_PORT
@@ -81,7 +81,16 @@ func NewConfig(filename string) *Config {
 	config.Users = make(map[string]string)
 	config.Spools = make([]*SpoolConfig, 0)
 
+	config.checksum = config.Checksum()
+
+	return &config
+}
+
+func NewConfigFromFile(filename string) *Config {
+	config := NewConfig()
+
 	if filename != "" {
+		config.filename = filename
 		buf, err := ioutil.ReadFile(filename)
 		if err == nil {
 			err = yaml.Unmarshal(buf, &config)
@@ -89,11 +98,10 @@ func NewConfig(filename string) *Config {
 				log.Fatal(err)
 			}
 		}
+		config.checksum = config.Checksum()
 	}
 
-	config.checksum = config.Checksum()
-
-	return &config
+	return config
 }
 
 // Get a spool by name.

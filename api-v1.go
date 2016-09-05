@@ -30,10 +30,11 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"strconv"
-	"github.com/pkg/errors"
 	"github.com/jasonish/dumpy/dumper"
 	"time"
 	"github.com/jasonish/dumpy/config"
+	"errors"
+	"fmt"
 )
 
 func ParseTimestamp(timestamp string) (int64, error) {
@@ -45,15 +46,17 @@ func ParseTimestamp(timestamp string) (int64, error) {
 	if err == nil {
 		return asTime.Unix(), nil
 	}
-	return 0, errors.Errorf("Failed to parse timestamp: %s", timestamp)
+	return 0, errors.New(fmt.Sprintf("Failed to parse timestamp: %s", timestamp))
 }
 
 func ApiV1DownloadRequestHandler(c *config.Config, w http.ResponseWriter, r *http.Request) error {
+
 	dumperOptions := dumper.DumperOptions{}
 	var err error
+	filename := "dumpy.pcap"
 
 	if r.FormValue("duration") != "" && r.FormValue("endTime") != "" {
-		http.Error(w, "Duration and endTime cannot both be provided", http.StatusBadRequest)
+		return &HttpError{"Duration and endTime cannot both be provided", http.StatusBadRequest}
 	}
 
 	if r.FormValue("startTime") != "" {
@@ -87,6 +90,11 @@ func ApiV1DownloadRequestHandler(c *config.Config, w http.ResponseWriter, r *htt
 		dumperOptions.Filter = r.FormValue("filter")
 	}
 
+	// Filename to be used in the content-disposition.
+	if r.FormValue("filename") != "" {
+		filename = r.FormValue("filename")
+	}
+
 	var spool *config.SpoolConfig
 
 	if r.FormValue("spool") != "" {
@@ -106,7 +114,7 @@ func ApiV1DownloadRequestHandler(c *config.Config, w http.ResponseWriter, r *htt
 		dumperOptions.Recursive = spool.Recursive
 	}
 
-	dumperProxy := DumperProxy{dumperOptions, w, "dumpy.pcap"}
+	dumperProxy := DumperProxy{dumperOptions, w, filename}
 	dumperProxy.Run()
 
 	return nil

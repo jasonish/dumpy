@@ -32,5 +32,5 @@ type DumperOptions struct {
 	Directory string
 	Prefix    string
 	Recursive bool
-	Filter string
+	Filter    string
 }
