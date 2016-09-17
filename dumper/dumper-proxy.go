@@ -150,5 +150,7 @@ func (dp *DumperProxy) Run() {
 		http.Error(dp.Writer, "No packets found.", http.StatusNotFound)
 	}
 
+	dumper.Wait();
+
 	log.Printf("Wrote %d bytes of pcap data.", bytesWritten)
 }
