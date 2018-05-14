@@ -7,7 +7,10 @@ test:
 	@go test $(shell go list ./... | grep -v /vendor/)
 
 install-deps:
-	glide install
+	go get github.com/golang/dep/cmd/dep
+	go get github.com/GeertJohan/go.rice/rice
+	dep ensure
+
 	npm install moment
 	npm install bootstrap
 	npm install jquery
