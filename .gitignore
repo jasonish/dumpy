@@ -3,6 +3,7 @@ dumpy
 dumpy.test
 *~
 /dist/
+*-packr.go
 
 # Running artifacts.
 *.pem
