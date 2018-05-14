@@ -15,3 +15,4 @@ dumpy.yaml*
 # Thirdy party packages.
 /vendor
 /node_modules
+/www/vendor

@@ -11,9 +11,7 @@ install-deps:
 	go get github.com/GeertJohan/go.rice/rice
 	dep ensure
 
-	npm install moment
-	npm install bootstrap
-	npm install jquery
+	npm install
 	mkdir -p www/vendor
 	cp node_modules/bootstrap/dist/css/bootstrap.min.css www/vendor
 	cp node_modules/bootstrap/dist/js/bootstrap.min.js www/vendor
