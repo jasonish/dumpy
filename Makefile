@@ -1,14 +1,14 @@
 all:
+	rm -f dumpy
+	packr
 	go build
-	rice -v append --exec dumpy || \
-		echo "warning: rice not found: static assets won't be bundled"
 
 test:
 	@go test $(shell go list ./... | grep -v /vendor/)
 
 install-deps:
 	go get github.com/golang/dep/cmd/dep
-	go get github.com/GeertJohan/go.rice/rice
+	go get github.com/gobuffalo/packr/...
 	dep ensure
 
 	npm install
