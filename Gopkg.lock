@@ -2,18 +2,10 @@
 
 
 [[projects]]
-  name = "github.com/GeertJohan/go.rice"
-  packages = [
-    ".",
-    "embedded"
-  ]
-  revision = "9fdfd46f9806a9228aae341d65ab75c5235c383c"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/daaku/go.zipexe"
+  name = "github.com/gobuffalo/packr"
   packages = ["."]
-  revision = "a5fe2436ffcb3236e175e5149162b41cd28bd27d"
+  revision = "7f4074995d431987caaa35088199f13c44b24440"
+  version = "v1.11.0"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -28,9 +20,10 @@
   version = "v1.1"
 
 [[projects]]
-  name = "github.com/kardianos/osext"
+  name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "c2c54e542fb797ad986b31721e1baedf214ca413"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   name = "golang.org/x/crypto"
@@ -54,6 +47,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0034fd60dbf4ef19aa1301ad924abd101e6bea84bc4e80b282f399ee42609b7d"
+  inputs-digest = "0cc56ff645c97a7971d59a9fca78f1762a3f9be6491c493f197553d981f598b7"
   solver-name = "gps-cdcl"
   solver-version = 1

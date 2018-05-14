@@ -33,12 +33,14 @@ import (
 	"net/http"
 	"encoding/json"
 
-	"github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
 	"github.com/jasonish/dumpy/config"
 	"golang.org/x/net/context"
 	"github.com/jasonish/dumpy/env"
+	"github.com/gobuffalo/packr"
 )
+
+var assets packr.Box
 
 func HttpErrorAndLog(w http.ResponseWriter, r *http.Request, code int, format string, v ...interface{}) {
 	error := fmt.Sprintf(format, v...)
@@ -61,7 +63,7 @@ func JsonResponse(w http.ResponseWriter, body interface{}) {
 }
 
 func VersionHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	version := map[string]interface{} {
+	version := map[string]interface{}{
 		"version": VERSION,
 	}
 	JsonResponse(w, version)
@@ -75,11 +77,8 @@ func (h IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	preparedEvent := r.FormValue("event")
 
-	box, err := rice.FindBox("www")
-	if err != nil {
-		log.Fatal(err)
-	}
-	indexString, err := box.String("index.html")
+	indexString, err := assets.MustString("index.html")
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -147,8 +146,9 @@ func StartServer(config *config.Config) {
 
 	router.Handle("/", &IndexHandler{config})
 
-	router.PathPrefix("/").Handler(
-		http.FileServer(rice.MustFindBox("www").HTTPBox()))
+	assets = packr.NewBox("www")
+
+	router.PathPrefix("/").Handler(http.FileServer(assets))
 
 	http.Handle("/", AuthMiddlewareHandler(authenticator, router))
 
