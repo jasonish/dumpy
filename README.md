@@ -40,7 +40,7 @@ tcpdump.
 ## Building
 
 Building Dumpy requires:
-- A working Go 1.9+ development environment.
+- A working Go 1.11+ development environment.
 - A working [Node.js](https://nodejs.org/en/) install with npm for frontend
   dependencies.
 

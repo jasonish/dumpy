@@ -7,9 +7,7 @@ test:
 	@go test $(shell go list ./... | grep -v /vendor/)
 
 install-deps:
-	go get github.com/golang/dep/cmd/dep
 	go get github.com/gobuffalo/packr/...
-	dep ensure
 
 	npm install
 	mkdir -p www/vendor
