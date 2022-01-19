@@ -197,6 +197,6 @@ func (h *FetchHandler) HandleEventRequest(w http.ResponseWriter, r *http.Request
 		Filter: event.ToPcapFilter(),
 	}
 
-	dumperProxy := dumper.DumperProxy{dumperOptions, w, fmt.Sprintf("%d.pcap", event.SignatureId)}
+	dumperProxy := dumper.DumperProxy{dumperOptions, w, fmt.Sprintf("%d-%d-%s-%s-%d-%d.pcap", event.SignatureId, eventTimestamp.UnixNano() / int64(time.Millisecond), event.SourceAddr, event.DestAddr, event.SourcePort, event.DestPort)}
 	dumperProxy.Run()
 }
