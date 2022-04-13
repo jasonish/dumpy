@@ -1,19 +1,6 @@
-# Build artifacts.
-dumpy
-dumpy.test
-*~
-/dist/
-*-packr.go
-
-# Running artifacts.
-*.pem
-dumpy.yaml*
-
-# IntelliJ files.
-*.iml
+/target
 /.idea
-
-# Thirdy party packages.
+/dumpy.iml
+/dumpy.yaml*
+/*.pem
 /vendor
-/node_modules
-/www/vendor

@@ -33,7 +33,7 @@
 
 <input id="input-timezone-offset" type="hidden" name="default-timezone-offset"
        value=""/>
-<input id="query-type" type="hidden" name="query-type" value="pcap-filter"/>
+<input id="query-type" type="hidden" name="query-type" value="filter"/>
 
 <div class="row">
     <div class="col-md-1"></div>
@@ -41,7 +41,7 @@
 
         <ul class="nav nav-tabs" id="query-tabs">
             <li class="active"><a href="#pcap-filter-tab"
-                                  query-type="pcap-filter">PCAP Filter</a>
+                                  query-type="filter">PCAP Filter</a>
             </li>
             <li><a href="#event-tab" query-type="event">Event</a>
             </li>
@@ -154,7 +154,7 @@
                             <div class="col-md-12">
                                 <textarea id="event-input" class="form-control"
                                           name="event" tabindex="1"
-                                          placeholder="Event...">{{.event}}</textarea>
+                                          placeholder="Event..."></textarea>
                             </div>
                         </div>
                         <br/>
@@ -248,9 +248,7 @@
         <label for="spool-selector">Spool</label>
         <select class="form-control" id="spool-selector" name="spool"
                 tabindex="4">
-            {{range $index, $element := $.spools}}
-            <option>{{$element.Name}}</option>
-            {{end}}
+            <!-- Filled in from dumpy.js. -->
         </select>
 
     </div>
