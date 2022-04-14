@@ -123,7 +123,9 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
                     BadRequest::new("bad event")
                 })?;
 
-                (start_time, duration) = parse_event_timeframe(&event, &params)?;
+                let timeframes = parse_event_timeframe(&event, &params)?;
+                start_time = timeframes.0;
+                duration = timeframes.1;
 
                 if event.src_port.is_some() && event.dest_port.is_some() {
                     filter = format!(
