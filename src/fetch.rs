@@ -10,8 +10,10 @@ use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Extension;
 use serde::Deserialize;
+use std::ops::Add;
 use std::ops::Sub;
 use std::process::Stdio;
+use thiserror::Error;
 use time::format_description::well_known::Rfc3339;
 use time::{Duration, OffsetDateTime};
 use tokio::io::AsyncBufReadExt;
@@ -22,7 +24,7 @@ use tracing::{error, info};
 
 const DEFAULT_DURATION: &str = "1m";
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[allow(dead_code)]
 pub struct FetchRequest {
     #[serde(rename = "query-type")]
@@ -39,7 +41,8 @@ pub struct FetchRequest {
     spool: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[error("{reason:?}")]
 pub struct BadRequest {
     reason: String,
 }
@@ -94,53 +97,33 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
 
     match params.query_type.as_ref() {
         "filter" => {
-            let stime = match params.start_time {
+            let stime = match params.start_time.as_ref() {
                 Some(stime) => stime,
                 None => {
                     return Err(BadRequest::new("start-time is required"));
                 }
             };
-            start_time = OffsetDateTime::parse(&stime, &Rfc3339).map_err(|err| {
+
+            start_time = OffsetDateTime::parse(stime, &Rfc3339).map_err(|err| {
                 error!("Invalid start-time: {} -- {:?}", &stime, err);
                 BadRequest::new("invalid start-time")
             })?;
-            let pduration = params
-                .duration
-                .unwrap_or_else(|| DEFAULT_DURATION.to_string());
-            duration = parse_duration(&pduration).map_err(|err| {
+            let pduration = params.duration.as_deref().unwrap_or(DEFAULT_DURATION);
+            duration = parse_duration(pduration).map_err(|err| {
                 error!("Invalid duration: {} -- {:?}", &pduration, err);
                 BadRequest::new("invalid duration")
             })?;
-            filter = params.filter.unwrap();
+            filter = params.clone().filter.unwrap();
             filename = format!("{}.pcap", start_time.unix_timestamp());
         }
         "event" => {
-            use std::ops::Add;
-            if let Some(event) = params.event {
-                let event: EveEvent = serde_json::from_str(&event).map_err(|err| {
+            if let Some(event) = &params.event {
+                let event: EveEvent = serde_json::from_str(event).map_err(|err| {
                     error!("Failed to decode event: {:?} -- event={}", err, &event);
                     BadRequest::new("bad event")
                 })?;
-                let timestamp = parse_timestamp(&event.timestamp).map_err(|err| {
-                    error!(
-                        "Failed to parse event timestamp: {} -- {:?}",
-                        &event.timestamp, err
-                    );
-                    BadRequest::new("failed to parse event timestamp")
-                })?;
-                let duration_before = params
-                    .duration_before
-                    .unwrap_or_else(|| DEFAULT_DURATION.to_string());
-                let duration_before = parse_duration(&duration_before)
-                    .map_err(|_| BadRequest::new("invalid duration-before"))?;
-                let duration_after = params
-                    .duration_after
-                    .unwrap_or_else(|| DEFAULT_DURATION.to_string());
-                let duration_after = parse_duration(&duration_after)
-                    .map_err(|_| BadRequest::new("invalid duration-after"))?;
-                start_time = timestamp.sub(duration_before);
-                let end_time = timestamp.add(duration_after);
-                duration = end_time.sub(start_time);
+
+                (start_time, duration) = parse_event_timeframe(&event, &params)?;
 
                 if event.src_port.is_some() && event.dest_port.is_some() {
                     filter = format!(
@@ -153,7 +136,7 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
                     );
                 } else {
                     filter = format!(
-                        "proto {} and host {} and host {}",
+                        "{} and host {} and host {}",
                         &event.proto, &event.src_ip, &event.dest_ip
                     );
                 }
@@ -163,7 +146,7 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
                 filename = format!(
                     "{}-{}-{}-{}-{}-{}.pcap",
                     signature_id,
-                    timestamp.unix_timestamp(),
+                    start_time.unix_timestamp(),
                     &event.src_ip,
                     event.src_port.unwrap_or(0),
                     &event.dest_ip,
@@ -356,20 +339,94 @@ fn parse_timestamp(s: &str) -> Result<OffsetDateTime, time::Error> {
     Ok(parsed)
 }
 
+/// Parse out a start time and a duration from the flow or netflow fields.
+///
+/// The times are adjusted to be one second before and one second after the provided
+/// start and end times which seems to be required to catch the complete flow.
+fn parse_flow_timeframe(flow: &EveEventFlow) -> Option<(OffsetDateTime, Duration)> {
+    if let Ok(start_time) = parse_timestamp(&flow.start) {
+        let adjusted_start_time = start_time - Duration::seconds(1);
+        if let Some(end_time) = &flow.end {
+            if let Ok(end_time) = parse_timestamp(end_time) {
+                let duration = (end_time - start_time) + Duration::seconds(2);
+                return Some((adjusted_start_time, duration));
+            }
+        }
+        return Some((
+            adjusted_start_time,
+            parse_duration(DEFAULT_DURATION).unwrap(),
+        ));
+    }
+    None
+}
+
+fn parse_event_timeframe(
+    event: &EveEvent,
+    params: &FetchRequest,
+) -> Result<(OffsetDateTime, Duration), BadRequest> {
+    if event.event_type == "flow" {
+        if let Some(flow) = &event.flow {
+            if let Some(timeinfo) = parse_flow_timeframe(flow) {
+                return Ok(timeinfo);
+            }
+        }
+    } else if event.event_type == "netflow" {
+        if let Some(netflow) = &event.netflow {
+            if let Some(timeinfo) = parse_flow_timeframe(netflow) {
+                return Ok(timeinfo);
+            }
+        }
+    }
+
+    let timestamp = parse_timestamp(&event.timestamp).map_err(|err| {
+        error!(
+            "Failed to parse event timestamp: {} -- {:?}",
+            &event.timestamp, err
+        );
+        BadRequest::new("failed to parse event timestamp")
+    })?;
+
+    let duration_before = params
+        .duration_before
+        .as_deref()
+        .unwrap_or(DEFAULT_DURATION);
+    let duration_before =
+        parse_duration(duration_before).map_err(|_| BadRequest::new("invalid duration-before"))?;
+
+    let duration_after = params.duration_after.as_deref().unwrap_or(DEFAULT_DURATION);
+    let duration_after =
+        parse_duration(duration_after).map_err(|_| BadRequest::new("invalid duration-after"))?;
+
+    let start_time = timestamp.sub(duration_before);
+    let end_time = timestamp.add(duration_after);
+    let duration = end_time.sub(start_time);
+
+    Ok((start_time, duration))
+}
+
 #[derive(Debug, Deserialize)]
 struct EveEvent {
     timestamp: String,
+    event_type: String,
     proto: String,
     src_ip: String,
     src_port: Option<u16>,
     dest_ip: String,
     dest_port: Option<u16>,
     alert: Option<EveEventAlert>,
+    flow: Option<EveEventFlow>,
+    netflow: Option<EveEventFlow>,
 }
 
 #[derive(Debug, Deserialize)]
 struct EveEventAlert {
     signature_id: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct EveEventFlow {
+    start: String,
+    end: Option<String>,
 }
 
 #[cfg(test)]
