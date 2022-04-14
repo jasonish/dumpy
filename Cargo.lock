@@ -276,6 +276,7 @@ dependencies = [
  "bcrypt",
  "clap",
  "futures-util",
+ "lazy_static",
  "mime_guess",
  "pcap",
  "regex",

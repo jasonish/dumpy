@@ -4,6 +4,8 @@
 
 use anyhow::Result;
 use clap::Parser as ClapParser;
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
@@ -147,14 +149,19 @@ fn load_files(directory: &Path, args: &ExportArgs) -> Result<Option<SortedFiles>
 }
 
 fn parse_filename(filename: &OsStr) -> Option<(u64, u64)> {
-    let re = regex::Regex::new(r"(.*?)\.(\d+)\.(\d+)").unwrap();
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"(.*?)\.(\d+)(\.(\d+))?").unwrap();
+    }
     if let Some(filename) = filename.to_str() {
-        if let Some(m) = re.captures(filename) {
-            let id = m.get(2).unwrap().as_str().parse::<u64>().unwrap_or(0);
-            let ts = m.get(3).unwrap().as_str().parse::<u64>().unwrap_or(0);
-            if ts != 0 {
-                return Some((id, ts));
-            }
+        if let Some(m) = RE.captures(filename) {
+            let a = m.get(2).unwrap().as_str().parse::<u64>().unwrap_or(0);
+            let b = if let Some(m) = m.get(4) {
+                m.as_str().parse::<u64>().unwrap_or(0)
+            } else {
+                0
+            };
+            let (id, ts) = if a > b { (b, a) } else { (a, b) };
+            return Some((id, ts));
         }
     }
     None
@@ -244,4 +251,32 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::ffi::OsString;
+
+    #[test]
+    fn test_parse_filename_with_thread() {
+        let filename: OsString = "log.pcap.1.1649915733".into();
+        let r = parse_filename(&filename).unwrap();
+        assert_eq!(r, (1, 1649915733));
+
+        let filename: OsString = "log.pcap.11.1649915733".into();
+        let r = parse_filename(&filename).unwrap();
+        assert_eq!(r, (11, 1649915733));
+
+        let filename: OsString = "log.pcap.111.1649915733".into();
+        let r = parse_filename(&filename).unwrap();
+        assert_eq!(r, (111, 1649915733));
+    }
+
+    #[test]
+    fn test_parse_filename_without_thread() {
+        let filename: OsString = "log.pcap.1649915733".into();
+        let r = parse_filename(&filename).unwrap();
+        assert_eq!(r, (0, 1649915733));
+    }
 }
