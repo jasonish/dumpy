@@ -103,6 +103,7 @@ pub(crate) fn main(args: ExportArgs) -> anyhow::Result<()> {
 fn load_files(directory: &Path, args: &ExportArgs) -> Result<Option<SortedFiles>> {
     // Recursive not yet supported.
     if args.recursive {
+        info!("Optimized file sorting not supported for recursive mode yet");
         return Ok(None);
     }
     let start_time = args.start_time.unwrap_or(0) as u64;
@@ -112,13 +113,22 @@ fn load_files(directory: &Path, args: &ExportArgs) -> Result<Option<SortedFiles>
     for entry in std::fs::read_dir(directory)? {
         let entry = entry?;
         let path = entry.path();
-        let filename = path.file_name().unwrap();
-        if let Some((id, ts)) = parse_filename(filename) {
-            let list = sorted.entry(id).or_insert(vec![]);
-            list.push((ts, path));
-        } else {
-            // Get out of here, we can't present a fully sorted file set.
-            return Ok(None);
+        if path.is_file() {
+            if let Some(prefix) = &args.prefix {
+                if let Some(filename) = path.file_name().and_then(|filename| filename.to_str()) {
+                    if !filename.starts_with(prefix) {
+                        continue;
+                    }
+                }
+            }
+            let filename = path.file_name().unwrap();
+            if let Some((id, ts)) = parse_filename(filename) {
+                let list = sorted.entry(id).or_insert(vec![]);
+                list.push((ts, path));
+            } else {
+                // Get out of here, we can't present a fully sorted file set.
+                return Ok(None);
+            }
         }
     }
 
@@ -175,8 +185,10 @@ fn process_dir(args: &ExportArgs, directory: &Path, out: &mut Option<pcap::Savef
             process_dir(args, &path, out);
         } else if path.is_file() {
             if let Some(prefix) = &args.prefix {
-                if !path.starts_with(prefix) {
-                    continue;
+                if let Some(filename) = path.file_name().and_then(|filename| filename.to_str()) {
+                    if !filename.starts_with(prefix) {
+                        continue;
+                    }
                 }
             }
             if let Err(err) = process_file(args, &path, out) {
