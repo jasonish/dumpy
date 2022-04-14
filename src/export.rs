@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
-use tracing::{error, Level};
+use tracing::{debug, error, Level};
 use tracing::{info, warn};
 
 type SortedFiles = HashMap<u64, Vec<(u64, PathBuf)>>;
@@ -51,8 +51,8 @@ pub(crate) struct ExportArgs {
     duration: Option<i64>,
 
     /// Enable more verbose logging
-    #[clap(long, short)]
-    verbose: bool,
+    #[clap(long, short, parse(from_occurrences))]
+    verbose: usize,
 
     /// Output filename
     ///
@@ -66,10 +66,12 @@ pub(crate) struct ExportArgs {
 }
 
 pub(crate) fn main(args: ExportArgs) -> anyhow::Result<()> {
-    let level = if args.verbose {
+    let level = if args.verbose == 0 {
+        Level::ERROR
+    } else if args.verbose == 1 {
         Level::INFO
     } else {
-        Level::ERROR
+        Level::DEBUG
     };
     let logger = tracing_subscriber::fmt()
         .with_max_level(level)
@@ -140,14 +142,14 @@ fn load_files(directory: &Path, args: &ExportArgs) -> Result<Option<SortedFiles>
         files.retain(|e| {
             let _current = pit.next().unwrap();
             if e.0 > end_time {
-                info!("Removing {}, it starts after the end time", e.1.display());
+                debug!("Removing {}, it starts after the end time", e.1.display());
                 return false;
             }
             if let Some(next) = pit.peek() {
                 if next.0 < start_time {
                     // The next file in our sorted list has a creating time less than our start
                     // time, we can remove this file.
-                    info!("Removing {}, it ends before our start time", e.1.display());
+                    debug!("Removing {}, it ends before our start time", e.1.display());
                     return false;
                 }
             }
@@ -196,7 +198,7 @@ fn process_dir(args: &ExportArgs, directory: &Path, out: &mut Option<pcap::Savef
                 std::process::exit(1);
             }
         } else {
-            info!("Ignoring {:?}", &path);
+            debug!("Ignoring {:?}", &path);
         }
     }
 }
@@ -206,7 +208,7 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
     let mtime = metadata.modified()?.duration_since(UNIX_EPOCH)?.as_secs();
     if let Some(start_time) = args.start_time {
         if mtime < start_time as u64 {
-            info!(
+            debug!(
                 "Ignoring {}, last modified before {}",
                 &path.display(),
                 start_time
@@ -255,9 +257,7 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
                     }
                     _ => {}
                 }
-                if args.verbose {
-                    warn!("{}: {}", path.display(), err);
-                }
+                warn!("{}: {}", path.display(), err);
                 break;
             }
         }
