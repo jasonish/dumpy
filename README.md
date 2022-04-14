@@ -37,6 +37,54 @@ cargo install --git https://github.com/jasonish/dumpy
 
 Installation from *crates.io* will become available after 0.4.0 is released.
 
+## Suricata Configuration
+
+For Dumpy to be of much use you will need a tool to log PCAP files. Suricata 
+can be configured to do this with the `pcap-log` output:
+
+```yaml
+  - pcap-log:
+      enabled: yes
+      filename: log.pcap
+      limit: 256mb
+      max-files: 1000
+      compression: none
+      mode: normal
+      dir: /data/capture
+```
+
+Or using multi-threaded mode where each worker thread will write to its own 
+file in hopes to improve performance:
+
+```yaml
+  - pcap-log:
+      enabled: yes
+      filename: log.pcap.%n.%t
+      limit: 256mb
+      max-files: 250
+      compression: none
+      mode: multi
+      dir: /data/capture
+```
+
+Optimizations exist for processing directories with the filename patterns 
+above, however most any patterns should work, however Dumpy may not be able 
+to eliminate files from being read if the above patterns are not followed.
+
+## Alternative: tcpdump
+
+Even `tcpdump` can be used to generate a *spool* directory of PCAP files:
+
+```
+tcpdump -w /data/captures/pcap.%s -G 3600 -s0 -i enp10s0
+```
+
+Note the `-G` parameter and the `%s` in the filename. With the above command 
+`tcpdump` will open a new files every hour and the filename will be prefixed 
+with the unix timestamp in seconds.
+
+Note: You will have to take care of cleaning up old files.
+
 ## Building
 
 Building Dumpy requires Rust and Cargo to be install, then simply:
