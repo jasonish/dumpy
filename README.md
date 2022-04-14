@@ -27,6 +27,16 @@ file directories such as those produced by Suricata.
    ```
 5. Then point your browser at http://<hostname>:7000/
 
+## Other Installation Options
+
+### With Cargo
+
+```
+cargo install --git https://github.com/jasonish/dumpy
+```
+
+Installation from *crates.io* will become available after 0.4.0 is released.
+
 ## Building
 
 Building Dumpy requires Rust and Cargo to be install, then simply:
