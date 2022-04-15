@@ -19,7 +19,7 @@ lazy_static = "1.4.0"
 mime_guess = { version = "2.0.4", default_features = false }
 pcap = { version = "0.9.1", default_features = false }
 regex = { version = "1.5.5", default_features = true }
-rust-embed = { version = "6.3.0", default_features = false }
+rust-embed = { version = "6.4.0", default_features = false }
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = { version = "1.0.79", default_features = false, features = [] }
 serde_yaml = { version = "0.8.23", default_features = false, features = [] }
