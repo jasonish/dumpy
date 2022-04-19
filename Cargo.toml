@@ -9,7 +9,7 @@ description = "A web frontend to Suricata full packet capture"
 
 [dependencies]
 anyhow = "1.0.56"
-axum = { version = "0.5.1", default_features = false, features = ["json", "form", "query"] }
+axum = { version = "0.5.3", default_features = false, features = ["json", "form", "query"] }
 axum-server = { version = "0.3.3", default_features = false, features = ["tls-rustls"] }
 base64 = { version = "0.13.0", default_features = false }
 bcrypt = { version = "0.12.1", default_features = false, features = ["std"] }
