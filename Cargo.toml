@@ -8,7 +8,7 @@ license = "MIT"
 description = "A web frontend to Suricata full packet capture"
 
 [dependencies]
-anyhow = "1.0.56"
+anyhow = "1.0.57"
 axum = { version = "0.5.3", default_features = false, features = ["json", "form", "query"] }
 axum-server = { version = "0.4.0", default_features = false, features = ["tls-rustls"] }
 base64 = { version = "0.13.0", default_features = false }
