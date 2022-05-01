@@ -257,7 +257,7 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
                     }
                     _ => {}
                 }
-                warn!("{}: {}", path.display(), err);
+                warn!("pcap-error: {}: {}", path.display(), err);
                 break;
             }
         }

@@ -254,10 +254,9 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
             error!("Export process exited with error code: {:?}", status);
         }
         if let Some(wait_tx) = wait_tx.take() {
-            if status.success() {
-                wait_tx.send("nopkt").unwrap();
-            } else {
-                wait_tx.send("err").unwrap();
+            let msg = if status.success() { "nopkt" } else { "err" };
+            if let Err(err) = wait_tx.send(msg) {
+                error!("Send to wait channel failed: msg={}, err={:?}", msg, err);
             }
         }
     });
@@ -306,8 +305,8 @@ async fn read_stderr(
                 let level = v["level"].as_str().unwrap_or("INFO");
                 if let Some(message) = v["fields"]["message"].as_str() {
                     match level {
-                        "ERROR" => error!("{}", message),
-                        _ => info!("{}", message),
+                        "ERROR" => error!("(export) {}", message),
+                        _ => info!("(export) {}", message),
                     }
                     return false;
                 }
