@@ -13,7 +13,7 @@ axum = { version = "0.5.3", default_features = false, features = ["json", "form"
 axum-server = { version = "0.4.0", default_features = false, features = ["tls-rustls"] }
 base64 = { version = "0.13.0", default_features = false }
 bcrypt = { version = "0.12.1", default_features = false, features = ["std"] }
-clap = { version = "3.1.12", default_features = false, features = ["std", "derive", "color"] }
+clap = { version = "3.1.15", default_features = false, features = ["std", "derive", "color"] }
 futures-util = { version = "0.3.21", default_features = false }
 lazy_static = "1.4.0"
 mime_guess = { version = "2.0.4", default_features = false }
@@ -21,13 +21,13 @@ pcap = { version = "0.9.2", default_features = false }
 regex = { version = "1.5.5", default_features = true }
 rust-embed = { version = "6.4.0", default_features = false }
 serde = { version = "1.0.136", features = ["derive"] }
-serde_json = { version = "1.0.79", default_features = false, features = [] }
+serde_json = { version = "1.0.80", default_features = false, features = [] }
 serde_yaml = { version = "0.8.23", default_features = false, features = [] }
 thiserror = "1.0.30"
 time = { version = "0.3.9", default_features = false, features = ["parsing"] }
-tokio = { version = "1.18.0", default_features = false, features = ["macros", "rt-multi-thread", "full"] }
+tokio = { version = "1.18.1", default_features = false, features = ["macros", "rt-multi-thread", "full"] }
 tokio-stream = { version = "0.1.8", default_features = false, features = [] }
 tokio-util = { version = "0.7.1", default_features = false, features = ["io"] }
-tower-http = { version = "0.3.1", default_features = false, features = ["auth"] }
+tower-http = { version = "0.3.2", default_features = false, features = ["auth"] }
 tracing = { version = "0.1.34", default_features = false, features = [] }
 tracing-subscriber = { version = "0.3.6", default_features = false, features = ["json", "fmt", "ansi"] }
