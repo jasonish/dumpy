@@ -115,7 +115,7 @@ async fn fallback_handler(uri: Uri) -> impl IntoResponse {
         }
         Some(body) => {
             let data = body.data.into_owned();
-            let mime = mime_guess::from_path(&path).first_or_octet_stream();
+            let mime = mime_guess::from_path(path).first_or_octet_stream();
             let mut headers = HeaderMap::new();
             headers.insert(
                 axum::http::header::CONTENT_TYPE,
