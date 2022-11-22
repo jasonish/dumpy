@@ -62,12 +62,7 @@ impl IntoResponse for BadRequest {
 }
 
 fn get_spool_config<'a>(config: &'a Config, name: &str) -> Option<&'a SpoolConfig> {
-    for spool in &config.spools {
-        if spool.name == name {
-            return Some(spool);
-        }
-    }
-    None
+    config.spools.iter().find(|&spool| spool.name == name)
 }
 
 pub async fn fetch_get(

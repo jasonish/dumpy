@@ -125,7 +125,7 @@ fn load_files(directory: &Path, args: &ExportArgs) -> Result<Option<SortedFiles>
             }
             let filename = path.file_name().unwrap();
             if let Some((id, ts)) = parse_filename(filename) {
-                let list = sorted.entry(id).or_insert(vec![]);
+                let list = sorted.entry(id).or_default();
                 list.push((ts, path));
             } else {
                 // Get out of here, we can't present a fully sorted file set.
@@ -217,7 +217,7 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
         }
     }
     info!("Processing file {}", &path.display());
-    let mut cf = pcap::Capture::from_file(&path).unwrap();
+    let mut cf = pcap::Capture::from_file(path).unwrap();
     if let Some(filter) = &args.filter {
         cf.filter(filter, true)?;
     }
@@ -239,7 +239,7 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
                 if out.is_none() {
                     // A bit of a hack, but prevents writing any data until we know we've found
                     // a packet.
-                    let cf0 = pcap::Capture::from_file(&path).unwrap();
+                    let cf0 = pcap::Capture::from_file(path).unwrap();
                     *out = Some(cf0.savefile(&args.output).unwrap());
                 }
                 out.as_mut().unwrap().write(&pkt);
