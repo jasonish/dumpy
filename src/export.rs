@@ -51,7 +51,7 @@ pub(crate) struct ExportArgs {
     duration: Option<i64>,
 
     /// Enable more verbose logging
-    #[clap(long, short, parse(from_occurrences))]
+    #[clap(long, short, action = clap::ArgAction::Count)]
     verbose: usize,
 
     /// Output filename
