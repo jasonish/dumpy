@@ -13,7 +13,7 @@ axum = { version = "0.5.17", default_features = false, features = ["json", "form
 axum-server = { version = "0.4.4", default_features = false, features = ["tls-rustls"] }
 base64 = { version = "0.13.0", default_features = false }
 bcrypt = { version = "0.13.0", default_features = false, features = ["std"] }
-clap = { version = "4.0.26", default_features = false, features = ["std", "derive", "color"] }
+clap = { version = "4.0.29", default_features = false, features = ["std", "derive", "color", "help", "usage"] }
 futures-util = { version = "0.3.21", default_features = false }
 lazy_static = "1.4.0"
 mime_guess = { version = "2.0.4", default_features = false }
