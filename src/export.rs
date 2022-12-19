@@ -52,7 +52,7 @@ pub(crate) struct ExportArgs {
 
     /// Enable more verbose logging
     #[clap(long, short, action = clap::ArgAction::Count)]
-    verbose: usize,
+    verbose: u8,
 
     /// Output filename
     ///
