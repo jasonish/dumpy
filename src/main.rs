@@ -5,6 +5,7 @@
 mod config;
 mod export;
 mod fetch;
+mod logging;
 mod server;
 
 use crate::export::ExportArgs;
@@ -32,6 +33,9 @@ enum Commands {
 }
 
 fn main() {
+    // Initialize the timezone offset before any threads might be created.
+    logging::init_offset();
+
     let args = Args::parse();
     if let Err(err) = match args.command {
         Commands::Export(sub_args) => export::main(sub_args),

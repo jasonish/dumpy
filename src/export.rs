@@ -73,14 +73,8 @@ pub(crate) fn main(args: ExportArgs) -> anyhow::Result<()> {
     } else {
         Level::DEBUG
     };
-    let logger = tracing_subscriber::fmt()
-        .with_max_level(level)
-        .with_writer(std::io::stderr);
-    if args.json {
-        logger.json().init();
-    } else {
-        logger.init();
-    }
+
+    crate::logging::init_logging(level, args.json);
 
     info!("args: {:?}", std::env::args());
 
