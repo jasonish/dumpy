@@ -42,10 +42,7 @@ struct FetchRequest {
 
 #[tokio::main]
 pub async fn start_server() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .with_writer(std::io::stderr)
-        .init();
+    crate::logging::init_logging(tracing::Level::INFO, false);
 
     tokio::spawn(async move {
         tokio::signal::ctrl_c()
