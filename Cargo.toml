@@ -25,7 +25,7 @@ serde_json = { version = "1.0.80", default_features = false, features = [] }
 serde_yaml = { version = "0.8.23", default_features = false, features = [] }
 thiserror = "1.0.30"
 time = { version = "0.3.9", default_features = false, features = ["parsing", "local-offset", "macros"] }
-tokio = { version = "1.18.1", default_features = false, features = ["macros", "rt-multi-thread", "full"] }
+tokio = { version = "1.24.2", default_features = false, features = ["macros", "rt-multi-thread", "full"] }
 tokio-stream = { version = "0.1.8", default_features = false, features = [] }
 tokio-util = { version = "0.7.1", default_features = false, features = ["io"] }
 tower-http = { version = "0.3.4", default_features = false, features = ["auth"] }
