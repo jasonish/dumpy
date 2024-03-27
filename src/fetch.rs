@@ -1,10 +1,8 @@
+// SPDX-FileCopyrightText: (C) 2022 Jason Ish <jason@codemonkey.net>
 // SPDX-License-Identifier: MIT
-//
-// Copyright (C) 2022 Jason Ish
 
 use crate::config::{Config, SpoolConfig};
 use anyhow::{anyhow, bail};
-use axum::body::StreamBody;
 use axum::extract::{Form, Query};
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
@@ -187,7 +185,7 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
     let (tx, rx) =
         tokio::sync::mpsc::unbounded_channel::<std::result::Result<Vec<u8>, std::io::Error>>();
     let rx = UnboundedReceiverStream::new(rx);
-    let body = StreamBody::new(rx);
+    let body = axum::body::Body::from_stream(rx);
     let mut stderr_reader = BufReader::new(stderr).lines();
     let (wait_tx, wait_rx) = tokio::sync::oneshot::channel::<&str>();
 
