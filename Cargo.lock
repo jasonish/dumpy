@@ -363,7 +363,7 @@ dependencies = [
  "anyhow",
  "axum",
  "axum-server",
- "base64 0.13.1",
+ "base64 0.21.7",
  "bcrypt",
  "clap",
  "futures-util",
