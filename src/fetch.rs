@@ -82,7 +82,7 @@ pub async fn fetch_post(
 pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResponse, BadRequest> {
     let spool_config = get_spool_config(&config, &params.spool).ok_or_else(|| {
         error!("No spool with the name: {}", &params.spool);
-        BadRequest::new(&format!("invalid spool name: {}", &params.spool))
+        BadRequest::new(format!("invalid spool name: {}", &params.spool))
     })?;
 
     let start_time;
