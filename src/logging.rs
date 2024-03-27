@@ -1,6 +1,5 @@
+// SPDX-FileCopyrightText: (C) 2022 Jason Ish <jason@codemonkey.net>
 // SPDX-License-Identifier: MIT
-//
-// Copyright (C) 2022 Jason Ish
 
 use time::macros::format_description;
 use time::UtcOffset;

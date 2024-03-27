@@ -1,6 +1,5 @@
+// SPDX-FileCopyrightText: (C) 2022 Jason Ish <jason@codemonkey.net>
 // SPDX-License-Identifier: MIT
-//
-// Copyright (C) 2022 Jason Ish
 
 mod config;
 mod export;

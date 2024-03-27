@@ -1,21 +1,17 @@
+// SPDX-FileCopyrightText: (C) 2022 Jason Ish <jason@codemonkey.net>
 // SPDX-License-Identifier: MIT
-//
-// Copyright (C) 2022 Jason Ish
 
 use crate::config::{Config, DEFAULT_PORT};
 use anyhow::Result;
-use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
+use axum::http::Request;
 use axum::http::{HeaderMap, HeaderValue, StatusCode, Uri};
-use axum::http::{Request, Response};
 use axum::response::IntoResponse;
-use axum::{Extension, Router};
+use axum::Extension;
 use axum_server::tls_rustls::RustlsConfig;
 use rust_embed::RustEmbed;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use tower_http::auth::AuthorizeRequest;
-use tower_http::auth::RequireAuthorizationLayer;
 use tracing::{error, info};
 
 #[derive(RustEmbed)]
@@ -57,16 +53,19 @@ pub async fn start_server() -> Result<()> {
         .route("/fetch", axum::routing::post(crate::fetch::fetch_post))
         .route("/fetch", axum::routing::get(crate::fetch::fetch_get))
         .fallback(axum::routing::get(fallback_handler))
-        .layer(RequireAuthorizationLayer::custom(Authenticator {
-            users: config.users.clone(),
-        }))
-        .layer(Extension(config.clone()));
-    let service: IntoMakeServiceWithConnectInfo<Router, SocketAddr> =
-        app.into_make_service_with_connect_info();
+        .layer(Extension(config.clone()))
+        .layer(axum::middleware::from_fn(move |request, next| {
+            let authenticator = Authenticator {
+                users: config.users.clone(),
+            };
+            authenticator.authenticate(request, next)
+        }));
     let addr: SocketAddr = format!("[::]:{}", config.port.unwrap_or(DEFAULT_PORT))
         .parse()
         .unwrap();
     info!("Starting server on {}, TLS={}", &addr, config.tls.enabled);
+
+    let service = app.into_make_service();
 
     let bind = if config.tls.enabled {
         let tls_config =
@@ -154,33 +153,30 @@ impl Authenticator {
 
         None
     }
-}
 
-impl<B> AuthorizeRequest<B> for Authenticator {
-    type ResponseBody = axum::body::BoxBody;
-
-    fn authorize(
-        &mut self,
-        request: &mut Request<B>,
-    ) -> std::result::Result<(), Response<Self::ResponseBody>> {
-        // If no users we're wide open.
+    async fn authenticate(
+        self,
+        request: axum::extract::Request,
+        next: axum::middleware::Next,
+    ) -> impl IntoResponse {
         if self.users.is_empty() {
-            return Ok(());
+            return next.run(request).await;
         }
 
-        if let Some((username, password)) = Self::decode_username_password(request) {
+        if let Some((username, password)) = Self::decode_username_password(&request) {
             if let Some(hashed) = self.users.get(&username) {
                 if bcrypt::verify(password, hashed).unwrap_or(false) {
-                    return Ok(());
+                    return next.run(request).await;
                 }
             }
         }
+
         let mut headers = HeaderMap::new();
         headers.insert(
             axum::http::header::WWW_AUTHENTICATE,
             HeaderValue::from_str("Basic real=restricted").unwrap(),
         );
 
-        Err((StatusCode::UNAUTHORIZED, headers, "Unauthorized").into_response())
+        (StatusCode::UNAUTHORIZED, headers, "Unauthorized").into_response()
     }
 }
