@@ -6,6 +6,7 @@ authors = ["Jason Ish <jason@codemonkey.net>"]
 homepage = "https://github.com/jasonish/dumpy"
 license = "MIT"
 description = "A web frontend to Suricata full packet capture"
+rust-version = "1.78.0"
 
 [dependencies]
 anyhow = "1.0.57"
