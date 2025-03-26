@@ -129,14 +129,10 @@ pub struct Authenticator {
 
 impl Authenticator {
     fn decode_username_password<B>(request: &Request<B>) -> Option<(String, String)> {
-        let header = match request
+        let header = request
             .headers()
             .get("Authorization")
-            .and_then(|h| h.to_str().ok())
-        {
-            Some(header) => header,
-            None => return None,
-        };
+            .and_then(|h| h.to_str().ok())?;
 
         if header.starts_with("Basic ") {
             if let Some(encoded) = header.split(' ').nth(1) {
