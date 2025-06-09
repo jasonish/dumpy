@@ -215,7 +215,7 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
         cf.filter(filter, true)?;
     }
     loop {
-        let n = cf.next();
+        let n = cf.next_packet();
         match n {
             Ok(pkt) => {
                 let secs = pkt.header.ts.tv_sec;
