@@ -1,4 +1,4 @@
-FROM almalinux:8 as builder
+FROM almalinux:8 AS builder
 RUN dnf -y install dnf-plugins-core
 RUN dnf config-manager --set-enabled powertools
 RUN dnf -y install gcc libpcap-devel
