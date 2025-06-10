@@ -178,4 +178,34 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Failed to load spools:', error);
         });
+    
+    // Dark mode handling
+    const themeToggle = document.getElementById('theme-toggle');
+    const sunIcon = themeToggle.querySelector('.sun-icon');
+    const moonIcon = themeToggle.querySelector('.moon-icon');
+    
+    // Check for saved theme preference or default to light
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeIcon(currentTheme);
+    
+    // Toggle theme
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    });
+    
+    function updateThemeIcon(theme) {
+        if (theme === 'dark') {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        }
+    }
 });
