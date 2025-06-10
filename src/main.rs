@@ -5,6 +5,7 @@ mod config;
 mod export;
 mod fetch;
 mod logging;
+mod purge;
 mod server;
 
 use crate::export::ExportArgs;
@@ -41,6 +42,8 @@ enum Commands {
     Server,
     /// Configure Dumpy settings and PCAP spools
     Config(config::ConfigCommand),
+    /// Purge old PCAP files from spools
+    Purge(purge::PurgeArgs),
 }
 
 fn main() {
@@ -52,6 +55,7 @@ fn main() {
         Commands::Export(sub_args) => export::main(sub_args),
         Commands::Server => server::start_server(),
         Commands::Config(args) => config::config_main(args),
+        Commands::Purge(args) => purge::purge_main(args),
     } {
         error!("command failed: {:?}", err);
     }
