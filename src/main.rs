@@ -37,7 +37,9 @@ struct Args {
 enum Commands {
     /// Export data from PCAP files
     Export(ExportArgs),
+    /// Start the web server for PCAP viewing
     Server,
+    /// Configure Dumpy settings and PCAP spools
     Config(config::ConfigCommand),
 }
 
