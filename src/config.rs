@@ -88,21 +88,19 @@ Configurable parameters:
     tls.cert <filename>          TLS cert filename
     tls.key <filename>           TLS key filename
 ")]
-    Set {
-        key: String,
-        val: String,
-    },
+    Set { key: String, val: String },
+    /// Manage PCAP spool directories
     #[clap(subcommand)]
     Spool(SpoolCommands),
-    Passwd {
-        username: String,
-        password: String,
-    },
+    /// Set user authentication password
+    Passwd { username: String, password: String },
 }
 
 #[derive(Debug, clap::Subcommand)]
 enum SpoolCommands {
+    /// List configured PCAP spool directories
     List,
+    /// Add a new PCAP spool directory
     Add {
         /// The name of the spool
         name: String,
@@ -111,9 +109,8 @@ enum SpoolCommands {
         /// Optional filename prefix
         prefix: Option<String>,
     },
-    Remove {
-        name: String,
-    },
+    /// Remove a configured PCAP spool
+    Remove { name: String },
 }
 
 pub fn config_main(args: ConfigCommand) -> Result<()> {
