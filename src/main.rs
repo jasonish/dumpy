@@ -8,12 +8,22 @@ mod logging;
 mod server;
 
 use crate::export::ExportArgs;
+use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::Parser;
 use tracing::error;
 
+const STYLES: Styles = Styles::styled()
+    .header(AnsiColor::Green.on_default().effects(Effects::BOLD))
+    .usage(AnsiColor::Green.on_default().effects(Effects::BOLD))
+    .literal(AnsiColor::Cyan.on_default().effects(Effects::BOLD))
+    .placeholder(AnsiColor::BrightCyan.on_default())
+    .error(AnsiColor::Red.on_default().effects(Effects::BOLD))
+    .valid(AnsiColor::Green.on_default().effects(Effects::BOLD))
+    .invalid(AnsiColor::Red.on_default().effects(Effects::BOLD));
+
 /// PCAP spool directory processor
 #[derive(Parser, Debug)]
-#[clap(version, max_term_width = 80, about, long_about = None)]
+#[clap(version, max_term_width = 80, about, long_about = None, color = clap::ColorChoice::Auto, styles = STYLES)]
 struct Args {
     /// Enable more verbose logging
     #[clap(long, short, global = true, action = clap::ArgAction::Count)]
