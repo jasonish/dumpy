@@ -25,7 +25,7 @@ file directories such as those produced by Suricata.
    ```
    dumpy server
    ```
-5. Then point your browser at http://<hostname>:7000/
+5. Then point your browser at http://SERVER_IP:7000/
 
 ## Other Installation Options
 
@@ -37,13 +37,11 @@ file directories such as those produced by Suricata.
 cargo install dumpy
 ```
 
-#### Latest Git Master
+### With Docker
 
-```
-cargo install --git https://github.com/jasonish/dumpy
-```
-
-Installation from *crates.io* will become available after 0.4.0 is released.
+There is a Docker image at `docker.io/jasonish/dumpy:latest`, however
+you have to provide your own configuration file. So I'll leave that as
+an excercise to the reader for now.
 
 ## Suricata Configuration
 
