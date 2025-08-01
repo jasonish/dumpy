@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.5.1 - 2025-08-01
 - Add command-line configuration options to `dumpy server` command
   - All arguments are now optional
   - Falls back to dumpy.yaml configuration when arguments not provided
@@ -9,6 +9,7 @@
 - Improve PCAP filename parsing to support simpler timestamp-only formats
   - Previously only supported Suricata's thread-id.timestamp format
   - Now also supports files with just a timestamp in the filename
+- Update dependencies
 
 ## 0.5.0 - 2025-01-06
 - Add dark mode toggle and GitHub repository link to web interface
