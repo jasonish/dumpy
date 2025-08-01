@@ -155,10 +155,16 @@ fn load_files(directory: &Path, args: &ExportArgs) -> Result<Option<SortedFiles>
 
 fn parse_filename(filename: &OsStr) -> Option<(u64, u64)> {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"(.*?)\.(\d+)(\.(\d+))?").unwrap();
+        // Matches the Suricata pcap-log format with thread-id.
+        static ref RE_SURICATA_WITH_THREAD_ID: Regex =
+            Regex::new(r"(.*?)\.(\d+)(\.(\d+))?").unwrap();
+
+        // Matches a simpler format where the filename just contains a
+        // timestamp.
+        static ref RE_SIMPLE: Regex = Regex::new(r"(\d+)").unwrap();
     }
     if let Some(filename) = filename.to_str() {
-        if let Some(m) = RE.captures(filename) {
+        if let Some(m) = RE_SURICATA_WITH_THREAD_ID.captures(filename) {
             let a = m.get(2).unwrap().as_str().parse::<u64>().unwrap_or(0);
             let b = if let Some(m) = m.get(4) {
                 m.as_str().parse::<u64>().unwrap_or(0)
@@ -168,7 +174,13 @@ fn parse_filename(filename: &OsStr) -> Option<(u64, u64)> {
             let (id, ts) = if a > b { (b, a) } else { (a, b) };
             return Some((id, ts));
         }
+
+        if let Some(m) = RE_SIMPLE.captures(filename) {
+            let a = m.get(1).unwrap().as_str().parse::<u64>().unwrap_or(0);
+            return Some((0, a));
+        }
     }
+
     None
 }
 

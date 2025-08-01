@@ -6,6 +6,9 @@
   - Falls back to dumpy.yaml configuration when arguments not provided
   - Command-line arguments override configuration file values
   - Supports --directory, --name, --prefix, and --port options
+- Improve PCAP filename parsing to support simpler timestamp-only formats
+  - Previously only supported Suricata's thread-id.timestamp format
+  - Now also supports files with just a timestamp in the filename
 
 ## 0.5.0 - 2025-01-06
 - Add dark mode toggle and GitHub repository link to web interface
