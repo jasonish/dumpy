@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## Unreleased
+- Add command-line configuration options to `dumpy server` command
+  - All arguments are now optional
+  - Falls back to dumpy.yaml configuration when arguments not provided
+  - Command-line arguments override configuration file values
+  - Supports --directory, --name, --prefix, and --port options
+
 ## 0.5.0 - 2025-01-06
 - Add dark mode toggle and GitHub repository link to web interface
 - Replace jQuery/Bootstrap with vanilla JS/CSS lightweight implementation

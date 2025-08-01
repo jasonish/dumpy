@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2022 Jason Ish <jason@codemonkey.net>
 // SPDX-License-Identifier: MIT
 
-use crate::config::{Config, DEFAULT_PORT};
+use crate::config::Config;
 use anyhow::Result;
 use axum::http::Request;
 use axum::http::{HeaderMap, HeaderValue, StatusCode, Uri};
@@ -39,7 +39,12 @@ struct FetchRequest {
 }
 
 #[tokio::main]
-pub async fn start_server() -> Result<()> {
+pub async fn start_server(
+    directory: Option<String>,
+    name: Option<String>,
+    prefix: Option<String>,
+    port: Option<u16>,
+) -> Result<()> {
     crate::logging::init_logging(tracing::Level::INFO, false);
 
     tokio::spawn(async move {
@@ -49,7 +54,24 @@ pub async fn start_server() -> Result<()> {
         std::process::exit(0);
     });
 
-    let config = crate::config::Config::load()?;
+    // Load existing config or create default
+    let mut config = crate::config::Config::load()?;
+
+    // If command line arguments are provided, create a spool from them
+    if let Some(directory) = directory {
+        let spool = crate::config::SpoolConfig {
+            name: name.unwrap_or_else(|| "default".to_string()),
+            directory,
+            prefix,
+        };
+        // Replace all spools with the command line specified one
+        config.spools = vec![spool];
+    }
+
+    // Override port if provided
+    if let Some(port) = port {
+        config.port = Some(port);
+    }
     let app = axum::Router::new()
         .route("/api/spools", axum::routing::get(get_spools))
         .route("/fetch", axum::routing::post(crate::fetch::fetch_post))
@@ -62,9 +84,12 @@ pub async fn start_server() -> Result<()> {
             };
             authenticator.authenticate(request, next)
         }));
-    let addr: SocketAddr = format!("[::]:{}", config.port.unwrap_or(DEFAULT_PORT))
-        .parse()
-        .unwrap();
+    let addr: SocketAddr = format!(
+        "[::]:{}",
+        config.port.unwrap_or(crate::config::DEFAULT_PORT)
+    )
+    .parse()
+    .unwrap();
     info!("Starting server on {}, TLS={}", &addr, config.tls.enabled);
 
     let service = app.into_make_service();

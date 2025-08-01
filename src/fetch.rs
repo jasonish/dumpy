@@ -272,7 +272,7 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
                 );
                 headers.insert(
                     axum::http::header::CONTENT_DISPOSITION,
-                    HeaderValue::from_str(&format!("attachment; filename={}", filename)).unwrap(),
+                    HeaderValue::from_str(&format!("attachment; filename={filename}")).unwrap(),
                 );
 
                 (headers, body).into_response()
