@@ -39,7 +39,23 @@ enum Commands {
     /// Export data from PCAP files
     Export(ExportArgs),
     /// Start the web server for PCAP viewing
-    Server,
+    Server {
+        /// Spool directory containing PCAP files
+        #[clap(long, short)]
+        directory: Option<String>,
+
+        /// Name of the spool (default: "default")
+        #[clap(long, short)]
+        name: Option<String>,
+
+        /// Optional filename prefix filter
+        #[clap(long, short)]
+        prefix: Option<String>,
+
+        /// Port to listen on
+        #[clap(long)]
+        port: Option<u16>,
+    },
     /// Configure Dumpy settings and PCAP spools
     Config(config::ConfigCommand),
     /// Purge old PCAP files from spools
@@ -53,7 +69,12 @@ fn main() {
     let args = Args::parse();
     if let Err(err) = match args.command {
         Commands::Export(sub_args) => export::main(sub_args),
-        Commands::Server => server::start_server(),
+        Commands::Server {
+            directory,
+            name,
+            prefix,
+            port,
+        } => server::start_server(directory, name, prefix, port),
         Commands::Config(args) => config::config_main(args),
         Commands::Purge(args) => purge::purge_main(args),
     } {
