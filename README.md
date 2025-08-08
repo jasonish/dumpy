@@ -27,6 +27,49 @@ file directories such as those produced by Suricata.
    ```
 5. Then point your browser at http://SERVER_IP:7000/
 
+## Managing PCAP Files with Purge
+
+The `dumpy purge` command helps manage disk usage by automatically removing old PCAP files from spool directories based on configurable criteria.
+
+### Basic Usage
+
+Purge operates in two modes:
+
+1. **Keep N newest files**:
+   ```
+   dumpy purge /data/capture --keep-files 1000 --force
+   ```
+
+2. **Keep files up to total size**:
+   ```
+   dumpy purge /data/capture --max-size 10G --force
+   ```
+
+### Options
+
+- `--keep-files N`: Keep only the N newest files
+- `--max-size SIZE`: Keep files up to total size (e.g., "10G", "500M", "2T")
+- `--prefix PREFIX`: Only process files with specified prefix
+- `--force`: Actually delete files (without this, it's a dry-run)
+- `--interval N`: Run continuously, purging every N minutes (container mode)
+
+### Container/Daemon Mode
+
+For automated cleanup in containerized environments, use the interval option:
+
+```
+dumpy purge /data/capture --keep-files 1000 --force --interval 60
+```
+
+This runs the purge operation every 60 minutes, making it perfect for Docker containers or systemd services that need continuous cleanup.
+
+### Safety Features
+
+- **Dry-run by default**: Without `--force`, shows what would be deleted
+- **PCAP file detection**: Only processes files with `.pcap`, `.pcapng`, or `.cap` extensions
+- **Newest files protected**: Always keeps the newest files based on modification time
+- **Error resilience**: In interval mode, continues running even if individual operations fail
+
 ## Other Installation Options
 
 ### With Cargo
