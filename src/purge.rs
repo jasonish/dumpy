@@ -4,7 +4,8 @@
 use anyhow::{bail, Result};
 use clap::Parser;
 use std::path::{Path, PathBuf};
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
+use tokio::time::sleep;
 use tracing::{error, info, warn};
 
 #[derive(Debug, Parser)]
@@ -27,6 +28,10 @@ pub struct PurgeArgs {
     /// Actually delete files (default is dry-run)
     #[clap(long, short)]
     force: bool,
+
+    /// Run purge every N minutes (for container deployments)
+    #[clap(long, short)]
+    interval: Option<u64>,
 }
 
 #[derive(Debug)]
@@ -41,6 +46,26 @@ pub fn purge_main(args: PurgeArgs) -> Result<()> {
         .with_writer(std::io::stderr)
         .init();
 
+    if let Some(interval_minutes) = args.interval {
+        info!("Starting purge with {}-minute interval", interval_minutes);
+        let rt = tokio::runtime::Runtime::new()?;
+        rt.block_on(async {
+            loop {
+                if let Err(e) = run_purge_once(&args).await {
+                    error!("Purge failed: {}", e);
+                }
+
+                info!("Sleeping for {} minutes", interval_minutes);
+                sleep(Duration::from_secs(interval_minutes * 60)).await;
+            }
+        })
+    } else {
+        let rt = tokio::runtime::Runtime::new()?;
+        rt.block_on(run_purge_once(&args))
+    }
+}
+
+async fn run_purge_once(args: &PurgeArgs) -> Result<()> {
     let files = collect_pcap_files(&args.directory, args.prefix.as_deref())?;
     if files.is_empty() {
         info!("No PCAP files found in directory '{}'", args.directory);
