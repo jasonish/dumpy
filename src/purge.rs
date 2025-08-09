@@ -32,6 +32,10 @@ pub struct PurgeArgs {
     /// Run purge every N minutes (for container deployments)
     #[clap(long, short)]
     interval: Option<u64>,
+
+    /// Only log warnings and errors
+    #[clap(long, short)]
+    quiet: bool,
 }
 
 #[derive(Debug)]
@@ -42,7 +46,14 @@ struct FileInfo {
 }
 
 pub fn purge_main(args: PurgeArgs) -> Result<()> {
+    let log_level = if args.quiet {
+        tracing::Level::WARN
+    } else {
+        tracing::Level::INFO
+    };
+
     tracing_subscriber::fmt()
+        .with_max_level(log_level)
         .with_writer(std::io::stderr)
         .init();
 
