@@ -24,7 +24,7 @@ rust-embed = { version = "8.7.2", default-features = false }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = { version = "1.0.142", default-features = false, features = [] }
 serde_yaml = { version = "0.9.34", default-features = false, features = [] }
-thiserror = "2.0.12"
+thiserror = "2.0.15"
 time = { version = "0.3.41", default-features = false, features = ["parsing", "local-offset", "macros"] }
 tokio = { version = "1.47.0", default-features = false, features = ["macros", "rt-multi-thread", "full"] }
 tokio-stream = { version = "0.1.17", default-features = false, features = [] }
