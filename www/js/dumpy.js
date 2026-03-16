@@ -63,40 +63,45 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set initial start time
     document.getElementById('start-time').value = formatDate(new Date());
+
+    // Tab handling
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    function activateTab(tab) {
+        // Remove active class from all tabs and contents
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(tc => tc.classList.remove('active'));
+
+        // Add active class to selected tab
+        tab.classList.add('active');
+
+        // Show corresponding content
+        const tabName = tab.getAttribute('data-tab');
+        const content = document.querySelector(`[data-content="${tabName}"]`);
+        if (content) {
+            content.classList.add('active');
+        }
+
+        // Update query type
+        document.getElementById('query-type').value = tab.getAttribute('data-query-type');
+    }
     
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            activateTab(this);
+        });
+    });
+
     // Check URL parameters for event
     const params = new URLSearchParams(window.location.search);
     if (params.get('event')) {
         document.getElementById('event-input').value = params.get('event');
-        // Switch to event tab
         const eventTab = document.querySelector('[data-tab="event"]');
-        eventTab.click();
+        if (eventTab) {
+            activateTab(eventTab);
+        }
     }
-    
-    // Tab handling
-    const tabs = document.querySelectorAll('.tab');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            // Remove active class from all tabs and contents
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(tc => tc.classList.remove('active'));
-            
-            // Add active class to clicked tab
-            this.classList.add('active');
-            
-            // Show corresponding content
-            const tabName = this.getAttribute('data-tab');
-            const content = document.querySelector(`[data-content="${tabName}"]`);
-            if (content) {
-                content.classList.add('active');
-            }
-            
-            // Update query type
-            document.getElementById('query-type').value = this.getAttribute('data-query-type');
-        });
-    });
     
     // Dropdown handling
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
