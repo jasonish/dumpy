@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.5.2 - 2026-03-16
+- Add interval mode to `dumpy purge` for container and daemon-style deployments
+  - Run purge automatically every N minutes with `--interval`
+  - Continue running after individual purge failures instead of exiting
+- Add quiet logging mode to `dumpy purge` with `--quiet`
+  - Reduce output to warnings and errors only
+- Fix web UI event deep-links
+  - `?event=...` URLs now reliably activate the event tab and pre-fill the event
+    query
+
 ## 0.5.1 - 2025-08-01
 - Add command-line configuration options to `dumpy server` command
   - All arguments are now optional
