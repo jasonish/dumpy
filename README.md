@@ -27,6 +27,43 @@ file directories such as those produced by Suricata.
    ```
 5. Then point your browser at http://SERVER_IP:7000/
 
+## EveBox Integration
+
+Dumpy can be added to EveBox as a custom event service so you can jump
+from an alert straight to a related PCAP.
+
+Example EveBox configuration:
+
+```yaml
+event-services:
+  - type: custom
+    enabled: true
+    name: Dumpy (fetch)
+    url: https://dumpy/fetch?event={{raw}}&spool=default&query-type=event
+    target: new
+  - type: custom
+    enabled: true
+    name: Dumpy (event)
+    url: https://dumpy/?event={{raw}}&spool=default&query-type=event
+    target: new
+```
+
+Replace `https://dumpy/` with your Dumpy URL, and `default` with
+the spool name you configured in Dumpy.
+
+The two links behave differently:
+
+- `Dumpy (fetch)`: goes directly to the `/fetch` endpoint and
+  immediately starts downloading a PCAP generated from the EveBox
+  event.
+- `Dumpy (event)`: opens the Dumpy web UI with the event pre-filled in
+  the **Event** tab, so you can adjust details such as the time
+  before/after the event or select a different spool before
+  downloading.
+
+Use the `fetch` link when you want a one-click download, and the
+`event` link when you want to review or tweak the request first.
+
 ## Managing PCAP Files with Purge
 
 The `dumpy purge` command helps manage disk usage by automatically removing old PCAP files from spool directories based on configurable criteria.
