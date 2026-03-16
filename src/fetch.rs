@@ -120,14 +120,16 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
                 start_time = timeframes.0;
                 duration = timeframes.1;
 
-                if event.src_port.is_some() && event.dest_port.is_some() {
+                if let (Some(src_port), Some(dest_port)) =
+                    (event.src_port.as_ref(), event.dest_port.as_ref())
+                {
                     filter = format!(
                         "{} and ((host {} and port {}) and (host {} and port {}))",
                         &event.proto.to_lowercase(),
                         &event.src_ip,
-                        event.src_port.as_ref().unwrap(),
+                        src_port,
                         &event.dest_ip,
-                        event.dest_port.as_ref().unwrap(),
+                        dest_port,
                     );
                 } else {
                     filter = format!(
