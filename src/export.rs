@@ -128,7 +128,7 @@ fn load_files(directory: &Path, args: &ExportArgs) -> Result<Option<SortedFiles>
     }
 
     for files in sorted.values_mut() {
-        files.sort_by(|a, b| a.0.cmp(&b.0));
+        files.sort_by_key(|a| a.0);
 
         let tmp = files.clone();
         let mut pit = tmp.iter().peekable();
@@ -254,12 +254,11 @@ fn process_file(args: &ExportArgs, path: &Path, out: &mut Option<pcap::Savefile>
                     pcap::Error::NoMorePackets => {
                         break;
                     }
-                    pcap::Error::PcapError(ref error) => {
+                    pcap::Error::PcapError(ref error)
                         // Truncation errors are expected.
-                        if error.contains("truncated") {
+                        if error.contains("truncated") => {
                             break;
                         }
-                    }
                     _ => {}
                 }
                 warn!("pcap-error: {}: {}", path.display(), err);
