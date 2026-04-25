@@ -190,7 +190,7 @@ fn collect_pcap_files(directory: &str, prefix: Option<&str>) -> Result<Vec<FileI
     }
 
     // Sort by modification time, newest first
-    files.sort_by(|a, b| b.modified.cmp(&a.modified));
+    files.sort_by_key(|b| std::cmp::Reverse(b.modified));
 
     Ok(files)
 }
