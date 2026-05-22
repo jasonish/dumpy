@@ -22,7 +22,7 @@ pcap = { version = "2.4.0", default-features = false }
 regex = { version = "1.12.3", default-features = true }
 rust-embed = { version = "8.11.0", default-features = false }
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = { version = "1.0.149", default-features = false, features = [] }
+serde_json = { version = "1.0.150", default-features = false, features = [] }
 serde_yaml = { version = "0.9.34", default-features = false, features = [] }
 thiserror = "2.0.18"
 time = { version = "0.3.47", default-features = false, features = ["parsing", "local-offset", "macros"] }
