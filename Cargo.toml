@@ -19,7 +19,7 @@ futures-util = { version = "0.3.32", default-features = false }
 lazy_static = "1.5.0"
 mime_guess = { version = "2.0.5", default-features = false }
 pcap = { version = "2.4.0", default-features = false }
-regex = { version = "1.12.3", default-features = true }
+regex = { version = "1.12.4", default-features = true }
 rust-embed = { version = "8.11.0", default-features = false }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.149", default-features = false, features = [] }
