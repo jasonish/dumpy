@@ -157,7 +157,7 @@ fn config_set(config: &mut Config, key: String, val: String) -> Result<()> {
         "tls.enabled" => config.tls.enabled = val.parse()?,
         "tls.cert" => config.tls.certificate = val,
         "tls.key" => config.tls.key = val,
-        _ => anyhow::bail!("unknown configuration parameter: {}", &key),
+        _ => anyhow::bail!("unknown configuration parameter: {}", key),
     }
     config.save()?;
     Ok(())
@@ -170,9 +170,9 @@ fn spool_list(config: &Config) -> Result<()> {
         for spool in &config.spools {
             println!(
                 "- Name={}, Directory={}, Prefix={}",
-                &spool.name,
-                &spool.directory,
-                &spool.prefix.as_ref().unwrap_or(&("<none>".to_string()))
+                spool.name,
+                spool.directory,
+                spool.prefix.as_ref().unwrap_or(&("<none>".to_string()))
             );
         }
     }

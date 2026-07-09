@@ -80,7 +80,7 @@ pub async fn fetch_post(
 pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResponse, BadRequest> {
     let spool_config = get_spool_config(&config, &params.spool).ok_or_else(|| {
         error!("No spool with the name: {}", &params.spool);
-        BadRequest::new(format!("invalid spool name: {}", &params.spool))
+        BadRequest::new(format!("invalid spool name: {}", params.spool))
     })?;
 
     let start_time;
@@ -125,16 +125,16 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
                 {
                     filter = format!(
                         "{} and ((host {} and port {}) and (host {} and port {}))",
-                        &event.proto.to_lowercase(),
-                        &event.src_ip,
+                        event.proto.to_lowercase(),
+                        event.src_ip,
                         src_port,
-                        &event.dest_ip,
+                        event.dest_ip,
                         dest_port,
                     );
                 } else {
                     filter = format!(
                         "{} and host {} and host {}",
-                        &event.proto, &event.src_ip, &event.dest_ip
+                        event.proto, event.src_ip, event.dest_ip
                     );
                 }
 
@@ -144,9 +144,9 @@ pub async fn fetch(config: Config, params: FetchRequest) -> Result<impl IntoResp
                     "{}-{}-{}-{}-{}-{}.pcap",
                     signature_id,
                     start_time.unix_timestamp(),
-                    &event.src_ip,
+                    event.src_ip,
                     event.src_port.unwrap_or(0),
-                    &event.dest_ip,
+                    event.dest_ip,
                     event.dest_port.unwrap_or(0)
                 );
             } else {
