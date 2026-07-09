@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.5.3 - 2026-07-09
+- Fix PCAP exports selecting the wrong rotated files
+  - Reject ambiguous date-style filenames and fall back to a full-directory scan
+  - Keep files from different basenames and capture threads in separate rotation
+    sequences
+- Document EveBox custom event-service integration
+- Update Rust dependencies to address security audit findings
+
 ## 0.5.2 - 2026-03-16
 - Add interval mode to `dumpy purge` for container and daemon-style deployments
   - Run purge automatically every N minutes with `--interval`

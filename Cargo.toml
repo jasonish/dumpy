@@ -1,6 +1,6 @@
 [package]
 name = "dumpy"
-version = "0.5.2"
+version = "0.5.3"
 edition = "2021"
 authors = ["Jason Ish <jason@codemonkey.net>"]
 repository = "https://github.com/jasonish/dumpy"
